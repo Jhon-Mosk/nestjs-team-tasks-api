@@ -12,8 +12,8 @@ async function bootstrap() {
   const port = configService.getOrThrow<number>('port');
   const nodeEnv = configService.get<string>('nodeEnv');
 
-  const log = app.get(NativeLogger);
-  app.useLogger(log);
+  const logger = app.get(NativeLogger);
+  app.useLogger(logger);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -26,11 +26,11 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
 
   await app.listen(port);
 
-  log.log(
+  logger.log(
     {
       port,
       environment: nodeEnv,
