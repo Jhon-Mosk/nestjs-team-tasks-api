@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule, nativeLoggerOptions } from 'nestjs-pino';
 import configuration from './config/confuguration';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import configuration from './config/confuguration';
     LoggerModule.forRoot({
       pinoHttp: nativeLoggerOptions,
     }),
+    HealthModule,
   ],
 })
 export class AppModule {}

@@ -12,8 +12,6 @@ async function bootstrap() {
   const port = configService.getOrThrow<number>('port');
   const nodeEnv = configService.get<string>('nodeEnv');
 
-  await app.listen(port);
-
   const log = app.get(NativeLogger);
   app.useLogger(log);
 
@@ -29,6 +27,8 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  await app.listen(port);
 
   log.log(
     {
