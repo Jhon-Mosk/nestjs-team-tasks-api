@@ -7,11 +7,11 @@ export default () => {
     nodeEnv: parsed.NODE_ENV,
     port: parsed.PORT,
     database: {
-      host: parsed.DB_HOST,
-      port: parsed.DB_PORT,
-      user: parsed.DB_USER,
-      password: parsed.DB_PASSWORD,
-      name: parsed.DB_NAME,
+      host: parsed.POSTGRES_HOST,
+      port: parsed.POSTGRES_PORT,
+      user: parsed.POSTGRES_USER,
+      password: parsed.POSTGRES_PASSWORD,
+      name: parsed.POSTGRES_DB,
     },
   };
 };
