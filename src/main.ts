@@ -28,6 +28,37 @@ async function bootstrap() {
 
   app.useGlobalFilters(new HttpExceptionFilter(logger));
 
+  app.enableShutdownHooks();
+
+  ['SIGTERM', 'SIGINT'].forEach((signal) => {
+    process.on(signal, () => {
+      logger.warn(`${signal} received. Shutting down...`);
+      void app
+        .close()
+        .then(() => {
+          process.exit(0);
+        })
+        .catch((error: Error) => {
+          logger.error({ error }, 'Error during shutdown');
+          process.exit(1);
+        });
+    });
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    logger.error({ reason }, 'Unhandled Rejection');
+    void app.close().finally(() => {
+      process.exit(1);
+    });
+  });
+
+  process.on('uncaughtException', (error) => {
+    logger.error({ error }, 'Uncaught Exception');
+    void app.close().finally(() => {
+      process.exit(1);
+    });
+  });
+
   await app.listen(port);
 
   logger.log(
@@ -38,4 +69,5 @@ async function bootstrap() {
     'Application started',
   );
 }
+
 void bootstrap();
