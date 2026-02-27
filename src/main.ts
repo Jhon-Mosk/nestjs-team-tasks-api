@@ -38,4 +38,4 @@ async function bootstrap() {
     'Application started',
   );
 }
-bootstrap();
+void bootstrap();
