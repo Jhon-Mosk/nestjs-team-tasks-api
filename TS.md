@@ -19,7 +19,7 @@
 * Redis (кеширование + брокер очередей)
 * JWT (access + refresh)
 * RBAC
-* асинхронную обработку задач (Bull)
+* асинхронную обработку задач (BullMQ)
 * WebSocket
 * тестирование ≥ 70% coverage
 * Docker + CI
@@ -46,8 +46,8 @@
 
 ## Асинхронность
 
-* @nestjs/bull
-* Bull (Redis как брокер)
+* @nestjs/bullmq
+* BullMQ -> ioredis (Redis как брокер)
 * @nestjs/websockets
 
 ## Dev
@@ -315,7 +315,7 @@ tasks:user:{userId}:page:{n}:filters:{hash}
 
 Цель:
 
-* демонстрация Bull
+* демонстрация BullMQ
 * асинхронная архитектура
 * работа с Redis как брокером
 
@@ -495,7 +495,7 @@ ci setup
 * Есть Swagger
 * Реализован RBAC
 * Есть Redis (кеш + брокер)
-* Реализована очередь Bull
+* Реализована очередь BullMQ
 * Реализован WebSocket
 * Есть тесты ≥ 70%
 * Структура кода читаемая
