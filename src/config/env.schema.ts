@@ -9,6 +9,8 @@ export const envSchema = z.object({
   POSTGRES_USER: z.string(),
   POSTGRES_PASSWORD: z.string(),
   POSTGRES_DB: z.string(),
+
+  SHUTDOWN_TIMEOUT_MS: z.coerce.number().default(30_000),
 });
 
 export type EnvSchema = z.infer<typeof envSchema>;

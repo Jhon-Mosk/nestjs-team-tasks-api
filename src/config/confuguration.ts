@@ -13,5 +13,6 @@ export default () => {
       password: parsed.POSTGRES_PASSWORD,
       name: parsed.POSTGRES_DB,
     },
+    shutdownTimeoutMs: parsed.SHUTDOWN_TIMEOUT_MS,
   };
 };

@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { NativeLogger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { closeWithTimeout } from './common/utils/close-with-timeout';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -11,6 +12,8 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.getOrThrow<number>('port');
   const nodeEnv = configService.get<string>('nodeEnv');
+  const shutdownTimeoutMs =
+    configService.getOrThrow<number>('shutdownTimeoutMs');
 
   const logger = app.get(NativeLogger);
   app.useLogger(logger);
@@ -33,8 +36,7 @@ async function bootstrap() {
   ['SIGTERM', 'SIGINT'].forEach((signal) => {
     process.on(signal, () => {
       logger.warn(`${signal} received. Shutting down...`);
-      void app
-        .close()
+      void closeWithTimeout(app, shutdownTimeoutMs)
         .then(() => {
           process.exit(0);
         })
@@ -47,14 +49,14 @@ async function bootstrap() {
 
   process.on('unhandledRejection', (reason) => {
     logger.error({ reason }, 'Unhandled Rejection');
-    void app.close().finally(() => {
+    void closeWithTimeout(app, shutdownTimeoutMs).finally(() => {
       process.exit(1);
     });
   });
 
   process.on('uncaughtException', (error) => {
     logger.error({ error }, 'Uncaught Exception');
-    void app.close().finally(() => {
+    void closeWithTimeout(app, shutdownTimeoutMs).finally(() => {
       process.exit(1);
     });
   });
