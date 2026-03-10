@@ -18,6 +18,8 @@ services:
       resources:
         limits:
           memory: 512M
+    profiles:
+      - app
 
   postgres:
     image: postgres:16-alpine
@@ -34,6 +36,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    profiles:
+      - infra
 
 volumes:
   postgres_data:
