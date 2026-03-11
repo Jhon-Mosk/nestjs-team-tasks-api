@@ -14,5 +14,11 @@ export default () => {
       name: parsed.POSTGRES_DB,
     },
     shutdownTimeoutMs: parsed.SHUTDOWN_TIMEOUT_MS,
+    redis: {
+      user: parsed.REDIS_USER,
+      userPassword: parsed.REDIS_USER_PASSWORD,
+      host: parsed.REDIS_HOST,
+      port: parsed.REDIS_PORT,
+    },
   };
 };
