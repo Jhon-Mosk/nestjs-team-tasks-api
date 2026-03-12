@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule, nativeLoggerOptions } from 'nestjs-pino';
-import configuration from './config/confuguration';
+import configuration, { DatabaseConfig } from './config/confuguration';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
@@ -18,6 +19,25 @@ import { UsersModule } from './modules/users/users.module';
     }),
     LoggerModule.forRoot({
       pinoHttp: nativeLoggerOptions,
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const { host, port, user, password, name } =
+          configService.getOrThrow<DatabaseConfig>('database');
+
+        return {
+          type: 'postgres',
+          host,
+          port,
+          username: user,
+          password,
+          database: name,
+          entities: [],
+          autoLoadEntities: true,
+          synchronize: false,
+        };
+      },
     }),
     HealthModule,
     AuthModule,

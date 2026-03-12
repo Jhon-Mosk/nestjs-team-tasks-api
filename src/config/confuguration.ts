@@ -1,5 +1,13 @@
 import { envSchema } from './env.schema';
 
+export interface DatabaseConfig {
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  name: string;
+}
+
 export default () => {
   const parsed = envSchema.parse(process.env);
 
