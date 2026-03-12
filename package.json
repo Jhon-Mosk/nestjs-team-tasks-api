@@ -23,9 +23,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:debug": "node --inspect-brk --import=tsx --import=tsconfig-paths/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "typeorm": "node --import=tsx --env-file .env.development.local ./node_modules/typeorm/cli",
+    "typeorm:migration:generate": "npm run typeorm migration:generate -- -d src/database/data-source.ts src/database/migrations/Init",
+    "typeorm:migration:run": "npm run typeorm migration:run -- -d src/database/data-source.ts",
+    "typeorm:migration:revert": "npm run typeorm migration:revert -- -d src/database/data-source.ts",
+    "typeorm:migration:show": "npm run typeorm migration:show -- -d src/database/data-source.ts",
+    "typeorm:migration:create": "npm run typeorm migration:create -- -d src/database/data-source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -68,8 +74,8 @@
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.2",
-    "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },
