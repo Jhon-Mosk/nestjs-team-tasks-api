@@ -19,9 +19,9 @@ export enum UserRole {
   EMPLOYEE = 'employee',
 }
 
-@Index('idx_users_org_role', ['organization_id', 'role'])
+@Index('idx_users_org_role', ['organizationId', 'role'])
 @Index('idx_users_email', ['email'])
-@Index('idx_users_deleted_at', ['deleted_at'])
+@Index('idx_users_deleted_at', ['deletedAt'])
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')

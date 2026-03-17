@@ -24,14 +24,12 @@ export enum TaskPriority {
   HIGH = 'high',
 }
 
-@Index('idx_tasks_project', ['project_id'])
-@Index('idx_tasks_assignee', ['assignee_id'])
-@Index('idx_tasks_assignee_status', ['assignee_id', 'status'])
-@Index('idx_tasks_project_status', ['project_id', 'status'])
+@Index('idx_tasks_project', ['projectId'])
+@Index('idx_tasks_assignee', ['assigneeId'])
+@Index('idx_tasks_assignee_status', ['assigneeId', 'status'])
+@Index('idx_tasks_project_status', ['projectId', 'status'])
 @Index('idx_tasks_priority', ['priority'])
-@Index('idx_tasks_org', ['organization_id'])
-@Index('idx_tasks_deleted_at', ['deleted_at'])
-@Index('idx_tasks_org_status', ['organization_id', 'status'])
+@Index('idx_tasks_deleted_at', ['deletedAt'])
 @Entity('tasks')
 export class Task {
   @PrimaryGeneratedColumn('uuid')
