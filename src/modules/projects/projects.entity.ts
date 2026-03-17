@@ -13,8 +13,8 @@ import {
 import { Organization } from '../organizations/organizations.entity';
 import { Task } from '../tasks/tasks.entity';
 
-@Index('idx_projects_org', ['organization_id'])
-@Index('idx_projects_deleted_at', ['deleted_at'])
+@Index('idx_projects_org', ['organizationId'])
+@Index('idx_projects_deleted_at', ['deletedAt'])
 @Entity('projects')
 export class Project {
   @PrimaryGeneratedColumn('uuid')
