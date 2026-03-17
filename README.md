@@ -125,6 +125,62 @@ docker run -p 3000:3000 --env-file .env nest-app
 
 ---
 
+# 🗄 Миграции (TypeORM)
+
+Конфигурация `DataSource` находится в `src/database/data-source.ts`, а удобные скрипты — в `package.json`.
+
+## Базовая команда
+
+```bash
+npm run typeorm -- <command>
+```
+
+Например:
+
+```bash
+npm run typeorm -- migration:show
+```
+
+## Генерация миграций
+
+Важно: **после `npm run typeorm:migration:generate` обязательно передавать `--` и путь/имя миграции**:
+
+```bash
+npm run typeorm:migration:generate -- src/database/migrations/Init
+```
+
+- `--` — разделяет аргументы npm и аргументы для TypeORM CLI.
+- `src/database/migrations/Init` — путь и базовое имя файла миграции (будет дополнено таймстампом).
+
+Скрипт внутри `package.json`:
+
+- `typeorm:migration:generate` → `npm run typeorm migration:generate`
+
+## Применение и откат миграций
+
+```bash
+# применить все неприменённые миграции
+npm run typeorm:migration:run
+
+# откатить последнюю миграцию
+npm run typeorm:migration:revert
+
+# показать статус миграций
+npm run typeorm:migration:show
+```
+
+## Ручное создание пустой миграции
+
+Если нужно создать пустой шаблон миграции:
+
+```bash
+npm run typeorm:migration:create -- src/database/migrations/AddSomething
+```
+
+Дальше наполняешь файл миграции SQL/TypeORM‑командами вручную.
+
+---
+
 # 🏗 Архитектурные принципы
 
 Этот шаблон ориентирован на:
