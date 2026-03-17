@@ -5,10 +5,14 @@ import { LoggerModule, nativeLoggerOptions } from 'nestjs-pino';
 import configuration, { DatabaseConfig } from './config/confuguration';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { Organization } from './modules/organizations/organizations.entity';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { Project } from './modules/projects/projects.entity';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { Task } from './modules/tasks/tasks.entity';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { User } from './modules/users/users.entity';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -33,8 +37,7 @@ import { UsersModule } from './modules/users/users.module';
           username: user,
           password,
           database: name,
-          entities: [],
-          autoLoadEntities: true,
+          entities: [User, Organization, Project, Task],
           synchronize: false,
         };
       },
