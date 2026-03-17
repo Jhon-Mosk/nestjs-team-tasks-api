@@ -26,7 +26,7 @@
     "test:debug": "node --inspect-brk --import=tsx --import=tsconfig-paths/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prepare": "husky || true",
-    "typeorm": "node --import=tsx --env-file .env.development.local ./node_modules/typeorm/cli",
+    "typeorm": "node --import=tsx --tsconfig ./tsconfig.json --env-file .env.development.local ./node_modules/typeorm/cli",
     "typeorm:migration:generate": "npm run typeorm migration:generate -- -d src/database/data-source.ts src/database/migrations/Init",
     "typeorm:migration:run": "npm run typeorm migration:run -- -d src/database/data-source.ts",
     "typeorm:migration:revert": "npm run typeorm migration:revert -- -d src/database/data-source.ts",
