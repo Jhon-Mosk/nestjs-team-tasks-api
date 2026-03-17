@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import configuration from 'src/config/confuguration';
 import { Organization } from 'src/modules/organizations/organizations.entity';
 import { Project } from 'src/modules/projects/projects.entity';
@@ -19,5 +20,5 @@ export const AppDataSource = new DataSource({
   logging: true,
   entities: [User, Organization, Project, Task],
   subscribers: [],
-  migrations: [],
+  migrations: ['src/database/migrations/*.ts'],
 });
