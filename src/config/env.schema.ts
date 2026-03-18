@@ -19,8 +19,8 @@ export const envSchema = z.object({
 
   JWT_ACCESS_SECRET: z.string(),
   JWT_REFRESH_SECRET: z.string(),
-  JWT_ACCESS_TTL_SEC: z.number().default(900),
-  JWT_REFRESH_TTL_SEC: z.number().default(604800),
+  JWT_ACCESS_TTL_SEC: z.coerce.number().default(900),
+  JWT_REFRESH_TTL_SEC: z.coerce.number().default(604800),
 });
 
 export type EnvSchema = z.infer<typeof envSchema>;
