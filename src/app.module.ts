@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule, nativeLoggerOptions } from 'nestjs-pino';
-import configuration, { DatabaseConfig } from './config/confuguration';
+import configuration, { Configuration } from './config/confuguration';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { Organization } from './modules/organizations/organizations.entity';
@@ -28,7 +28,7 @@ import { UsersModule } from './modules/users/users.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const { host, port, user, password, name } =
-          configService.getOrThrow<DatabaseConfig>('database');
+          configService.getOrThrow<Configuration['database']>('database');
 
         return {
           type: 'postgres',
