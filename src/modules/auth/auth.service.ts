@@ -142,4 +142,38 @@ export class AuthService {
 
     return { accessToken, refreshToken, refreshTtlSec };
   }
+
+  async refresh(refreshToken: string) {
+    const jwtConfig =
+      this.configService.getOrThrow<Configuration['jwt']>('jwt');
+
+    let payload: RefreshTokenPayload;
+    try {
+      payload = this.jwtService.verify<RefreshTokenPayload>(refreshToken, {
+        secret: jwtConfig.refreshSecret,
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: payload.sub, deletedAt: IsNull() },
+    });
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const accessPayload: AccessTokenPayload = {
+      sub: user.id,
+      organizationId: user.organizationId,
+      role: user.role,
+    };
+
+    const accessToken = this.jwtService.sign(accessPayload, {
+      secret: jwtConfig.accessSecret,
+      expiresIn: jwtConfig.accessTtlSec,
+    });
+
+    return { accessToken };
+  }
 }
