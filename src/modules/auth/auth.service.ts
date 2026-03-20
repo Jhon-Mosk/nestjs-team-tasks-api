@@ -1,16 +1,20 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
+import Redis from 'ioredis';
 import crypto from 'node:crypto';
 import { Configuration } from 'src/config/confuguration';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { Organization } from '../organizations/organizations.entity';
+import { REDIS_CLIENT } from '../redis/redis.provider';
 import { User, UserRole } from '../users/users.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -26,7 +30,13 @@ export class AuthService {
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
     private readonly dataSource: DataSource,
+    @Inject(REDIS_CLIENT)
+    private readonly redisClient: Redis,
   ) {}
+
+  private refreshSessionKey(userId: string, tokenId: string) {
+    return `refresh:${userId}:${tokenId}`;
+  }
 
   async register(dto: RegisterDto) {
     const dbUser = await this.userRepository.findOne({
@@ -81,9 +91,11 @@ export class AuthService {
       role: user.role,
     };
 
+    const tokenId = crypto.randomUUID();
+
     const refreshPayload: RefreshTokenPayload = {
       sub: user.id,
-      tid: crypto.randomUUID(),
+      tid: tokenId,
     };
 
     const accessToken = this.jwtService.sign(accessPayload, {
@@ -97,6 +109,13 @@ export class AuthService {
     });
 
     const refreshTtlSec = jwtConfig.refreshTtlSec;
+    const refreshSessionKey = this.refreshSessionKey(user.id, tokenId);
+
+    await this.redisClient
+      .set(refreshSessionKey, '1', 'EX', refreshTtlSec)
+      .catch(() => {
+        throw new ServiceUnavailableException();
+      });
 
     return { accessToken, refreshToken, refreshTtlSec };
   }
@@ -123,9 +142,11 @@ export class AuthService {
       role: user.role,
     };
 
+    const tokenId = crypto.randomUUID();
+
     const refreshPayload: RefreshTokenPayload = {
       sub: user.id,
-      tid: crypto.randomUUID(),
+      tid: tokenId,
     };
 
     const accessToken = this.jwtService.sign(accessPayload, {
@@ -139,6 +160,13 @@ export class AuthService {
     });
 
     const refreshTtlSec = jwtConfig.refreshTtlSec;
+    const refreshSessionKey = this.refreshSessionKey(user.id, tokenId);
+
+    await this.redisClient
+      .set(refreshSessionKey, '1', 'EX', refreshTtlSec)
+      .catch(() => {
+        throw new ServiceUnavailableException();
+      });
 
     return { accessToken, refreshToken, refreshTtlSec };
   }
@@ -160,6 +188,18 @@ export class AuthService {
       where: { id: payload.sub, deletedAt: IsNull() },
     });
     if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const refreshSessionKey = this.refreshSessionKey(payload.sub, payload.tid);
+
+    const refreshSessionKeysNumber = await this.redisClient
+      .exists(refreshSessionKey)
+      .catch(() => {
+        throw new ServiceUnavailableException();
+      });
+
+    if (refreshSessionKeysNumber === 0) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
