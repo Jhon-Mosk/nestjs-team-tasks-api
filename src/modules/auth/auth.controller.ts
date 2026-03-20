@@ -33,7 +33,7 @@ export class AuthController {
       secure: nodeEnv === 'production' ? true : false,
       sameSite: nodeEnv === 'production' ? 'none' : 'lax',
       maxAge: refreshTtlSec * 1000,
-      path: '/auth/refresh',
+      path: '/auth',
     });
   }
 
@@ -65,7 +65,7 @@ export class AuthController {
 
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('refresh_token', { path: '/auth/refresh' });
+    res.clearCookie('refresh_token', { path: '/auth' });
     return { ok: true };
   }
 
