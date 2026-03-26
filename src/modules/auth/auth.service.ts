@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtVerifyOptions } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
 import Redis from 'ioredis';
@@ -36,6 +36,17 @@ export class AuthService {
 
   private refreshSessionKey(userId: string, tokenId: string) {
     return `refresh:${userId}:${tokenId}`;
+  }
+
+  private verifyRefreshOrNull(
+    token: string,
+    options?: JwtVerifyOptions,
+  ): RefreshTokenPayload | null {
+    try {
+      return this.jwtService.verify<RefreshTokenPayload>(token, options);
+    } catch {
+      return null;
+    }
   }
 
   async register(dto: RegisterDto) {
@@ -114,7 +125,7 @@ export class AuthService {
     await this.redisClient
       .set(refreshSessionKey, '1', 'EX', refreshTtlSec)
       .catch(() => {
-        throw new ServiceUnavailableException();
+        throw new ServiceUnavailableException('Redis unavailable');
       });
 
     return { accessToken, refreshToken, refreshTtlSec };
@@ -165,7 +176,7 @@ export class AuthService {
     await this.redisClient
       .set(refreshSessionKey, '1', 'EX', refreshTtlSec)
       .catch(() => {
-        throw new ServiceUnavailableException();
+        throw new ServiceUnavailableException('Redis unavailable');
       });
 
     return { accessToken, refreshToken, refreshTtlSec };
@@ -175,14 +186,10 @@ export class AuthService {
     const jwtConfig =
       this.configService.getOrThrow<Configuration['jwt']>('jwt');
 
-    let payload: RefreshTokenPayload;
-    try {
-      payload = this.jwtService.verify<RefreshTokenPayload>(refreshToken, {
-        secret: jwtConfig.refreshSecret,
-      });
-    } catch {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
+    const payload = this.verifyRefreshOrNull(refreshToken, {
+      secret: jwtConfig.refreshSecret,
+    });
+    if (!payload) throw new UnauthorizedException('Invalid refresh token');
 
     const user = await this.userRepository.findOne({
       where: { id: payload.sub, deletedAt: IsNull() },
@@ -196,7 +203,7 @@ export class AuthService {
     const refreshSessionKeysNumber = await this.redisClient
       .exists(refreshSessionKey)
       .catch(() => {
-        throw new ServiceUnavailableException();
+        throw new ServiceUnavailableException('Redis unavailable');
       });
 
     if (refreshSessionKeysNumber === 0) {
@@ -215,5 +222,23 @@ export class AuthService {
     });
 
     return { accessToken };
+  }
+
+  async logout(refreshToken: string): Promise<{ shouldClearCookie: boolean }> {
+    const jwtConfig =
+      this.configService.getOrThrow<Configuration['jwt']>('jwt');
+
+    const payload = this.verifyRefreshOrNull(refreshToken, {
+      secret: jwtConfig.refreshSecret,
+    });
+    if (!payload) return { shouldClearCookie: true };
+
+    const refreshSessionKey = this.refreshSessionKey(payload.sub, payload.tid);
+
+    await this.redisClient.del(refreshSessionKey).catch(() => {
+      throw new ServiceUnavailableException('Redis unavailable');
+    });
+
+    return { shouldClearCookie: true };
   }
 }
