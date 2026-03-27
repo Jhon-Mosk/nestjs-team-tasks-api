@@ -17,6 +17,7 @@ import { Organization } from '../organizations/organizations.entity';
 import { REDIS_CLIENT } from '../redis/redis.provider';
 import { User, UserRole } from '../users/users.entity';
 import { LoginDto } from './dto/login.dto';
+import { MeResponseDto } from './dto/me-response.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AccessTokenPayload, RefreshTokenPayload } from './types/jwt-payload';
 
@@ -240,5 +241,20 @@ export class AuthService {
     });
 
     return { shouldClearCookie: true };
+  }
+
+  async me(userId: string): Promise<MeResponseDto> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId, deletedAt: IsNull() },
+    });
+
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+
+    return {
+      id: user.id,
+      email: user.email,
+      organizationId: user.organizationId,
+      role: user.role,
+    };
   }
 }

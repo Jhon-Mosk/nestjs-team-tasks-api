@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   Req,
   Res,
@@ -8,10 +9,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
+import { Auth } from 'src/common/decorators/auth.decorator';
 import { Configuration } from 'src/config/confuguration';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { AccessTokenPayload } from './types/jwt-payload';
 
 @Controller('auth')
 export class AuthController {
@@ -82,5 +85,12 @@ export class AuthController {
     if (shouldClearCookie) res.clearCookie('refresh_token', { path: '/auth' });
 
     return { ok: true };
+  }
+
+  @Auth()
+  @Get('me')
+  async me(@Req() req: Request & { user: AccessTokenPayload }) {
+    const userId = req.user.sub;
+    return await this.authService.me(userId);
   }
 }
