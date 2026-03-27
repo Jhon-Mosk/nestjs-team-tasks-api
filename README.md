@@ -12,6 +12,10 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
   - `POST /auth/refresh`: cookie-only refresh, выдаёт новый `accessToken`
   - **Redis refresh sessions**: на `register/login` создаётся ключ `refresh:{userId}:{tid}` с TTL = refresh TTL; на `refresh` проверяется существование ключа
   - `POST /auth/logout`: server-side invalidation refresh key в Redis + очистка cookie
+- **RBAC (scaffolding)**
+  - `@Roles(...)` decorator: `src/common/decorators/roles.decorator.ts`
+  - `RolesGuard`: `src/common/guards/roles.guard.ts`
+  - `JwtAuthGuard`: `src/common/guards/jwt-auth.guard.ts`
 - **Infra**
   - Docker Compose: `postgres` + `redis`
   - Zod env validation (`src/config/env.schema.ts`)
