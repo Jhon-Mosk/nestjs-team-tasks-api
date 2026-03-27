@@ -8,6 +8,29 @@ export interface DatabaseConfig {
   name: string;
 }
 
+export interface RedisConfig {
+  user: string;
+  userPassword: string;
+  host: string;
+  port: number;
+}
+
+export interface JwtConfig {
+  accessSecret: string;
+  refreshSecret: string;
+  accessTtlSec: number;
+  refreshTtlSec: number;
+}
+
+export interface Configuration {
+  nodeEnv: string;
+  port: number;
+  database: DatabaseConfig;
+  shutdownTimeoutMs: number;
+  redis: RedisConfig;
+  jwt: JwtConfig;
+}
+
 export default () => {
   const parsed = envSchema.parse(process.env);
 
@@ -27,6 +50,12 @@ export default () => {
       userPassword: parsed.REDIS_USER_PASSWORD,
       host: parsed.REDIS_HOST,
       port: parsed.REDIS_PORT,
+    },
+    jwt: {
+      accessSecret: parsed.JWT_ACCESS_SECRET,
+      refreshSecret: parsed.JWT_REFRESH_SECRET,
+      accessTtlSec: parsed.JWT_ACCESS_TTL_SEC,
+      refreshTtlSec: parsed.JWT_REFRESH_TTL_SEC,
     },
   };
 };

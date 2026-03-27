@@ -14,6 +14,7 @@ import { Project } from '../projects/projects.entity';
 import { User } from '../users/users.entity';
 
 @Index('idx_organizations_deleted_at', ['deletedAt'])
+@Index('idx_organizations_name', ['name'])
 @Entity('organizations')
 export class Organization {
   @PrimaryGeneratedColumn('uuid')
@@ -22,12 +23,12 @@ export class Organization {
   @Column({ nullable: false })
   name!: string;
 
-  @Column('uuid', { name: 'owner_id', nullable: false })
+  @Column('uuid', { name: 'owner_id', nullable: true })
   ownerId!: string;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'owner_id' })
-  owner!: User;
+  owner?: User;
 
   @OneToMany(() => User, (user) => user.organization)
   users!: User[];
