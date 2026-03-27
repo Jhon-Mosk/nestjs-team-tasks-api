@@ -16,6 +16,8 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
   - `@Roles(...)` decorator: `src/common/decorators/roles.decorator.ts`
   - `RolesGuard`: `src/common/guards/roles.guard.ts`
   - `JwtAuthGuard`: `src/common/guards/jwt-auth.guard.ts`
+  - `@Auth(...)` composite decorator: `src/common/decorators/auth.decorator.ts`
+  - `GET /auth/me`: защищённый endpoint текущего пользователя (данные читаются из БД через `AuthService.me()`)
 - **Infra**
   - Docker Compose: `postgres` + `redis`
   - Zod env validation (`src/config/env.schema.ts`)
@@ -61,3 +63,5 @@ npm run lint
 ## Roadmap
 
 План работ — в `../Roadmap.md` (RBAC + multi-tenant, CRUD, Redis cache, queue, WebSocket, тесты и CI).
+
+Важно: multi-tenant isolation (`organizationId`) применяется как обязательное правило в каждом новом CRUD-сервисе.
