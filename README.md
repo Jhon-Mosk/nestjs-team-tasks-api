@@ -4,6 +4,11 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
 
 Цель: показать enterprise-подходы (модульная архитектура, strict TS, миграции, auth, RBAC, multi-tenant isolation, Redis cache/queue, тесты и CI — по roadmap).
 
+## Прогресс по Roadmap
+
+- **День 3–4 — сделано:** полноценный auth (JWT + refresh в Redis + cookie), RBAC scaffolding (`@Roles`, `RolesGuard`, `@Auth`), `GET /auth/me`, юнит-тесты `AuthService` (`src/modules/auth/auth.service.spec.ts`). Правило изоляции: **`organizationId` в каждом CRUD-сервисе** (внедряется при CRUD).
+- **День 5 — следующий шаг:** CRUD **Projects** + **Users** (pagination, soft delete, тесты). Сущности и модули частично есть; полный CRUD — в работе.
+
 ## Что уже реализовано
 
 - **Auth**
@@ -12,10 +17,14 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
   - `POST /auth/refresh`: cookie-only refresh, выдаёт новый `accessToken`
   - **Redis refresh sessions**: на `register/login` создаётся ключ `refresh:{userId}:{tid}` с TTL = refresh TTL; на `refresh` проверяется существование ключа
   - `POST /auth/logout`: server-side invalidation refresh key в Redis + очистка cookie
-- **RBAC (scaffolding)**
+- **RBAC (scaffolding, Day 4)**
   - `@Roles(...)` decorator: `src/common/decorators/roles.decorator.ts`
   - `RolesGuard`: `src/common/guards/roles.guard.ts`
   - `JwtAuthGuard`: `src/common/guards/jwt-auth.guard.ts`
+  - `@Auth(...)` composite decorator: `src/common/decorators/auth.decorator.ts`
+  - `GET /auth/me`: защищённый endpoint текущего пользователя (данные читаются из БД через `AuthService.me()`)
+- **Тесты**
+  - Юнит-тесты `AuthService`: `src/modules/auth/auth.service.spec.ts` (`npm test -- auth.service.spec.ts`)
 - **Infra**
   - Docker Compose: `postgres` + `redis`
   - Zod env validation (`src/config/env.schema.ts`)
@@ -56,8 +65,13 @@ npm run typeorm:migration:run
 ```bash
 cd repo
 npm run lint
+npm test
 ```
 
 ## Roadmap
 
-План работ — в `../Roadmap.md` (RBAC + multi-tenant, CRUD, Redis cache, queue, WebSocket, тесты и CI).
+План работ — в `../Roadmap.md` (CRUD Projects/Users → Tasks → Redis cache → Bull → WebSocket → CI и т.д.).
+
+Дополнительный контекст для ментора и handoff: каталог `../memory/` (`next-actions.md`, `auth-progress.md`, `decision-log.md`).
+
+Важно: multi-tenant isolation (`organizationId`) применяется как обязательное правило в каждом новом CRUD-сервисе.
