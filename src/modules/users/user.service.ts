@@ -9,6 +9,8 @@ import { IsNull, Repository } from 'typeorm';
 import { AccessTokenPayload } from '../auth/types/jwt-payload';
 import { CreateUserResponseDto } from './dto/create-user-response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ListUsersQueryDto } from './dto/list-users-query.dto';
+import { ListUsersResponseDto } from './dto/list-users-response.dto';
 import { isAllowedToCreateUser } from './user.policy';
 import { User } from './users.entity';
 
@@ -54,6 +56,36 @@ export class UserService {
       organizationId: user.organizationId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+    };
+  }
+
+  async list(
+    query: ListUsersQueryDto,
+    actor: AccessTokenPayload,
+  ): Promise<ListUsersResponseDto> {
+    const { currentPage, itemsPerPage } = query;
+    const { organizationId } = actor;
+
+    const [users, total] = await this.userRepository.findAndCount({
+      where: { organizationId, deletedAt: IsNull() },
+      skip: (currentPage - 1) * itemsPerPage,
+      take: itemsPerPage,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      items: users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        organizationId: user.organizationId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })),
+      totalItems: total,
+      totalPages: Math.ceil(total / itemsPerPage),
+      currentPage,
+      itemsPerPage,
     };
   }
 }

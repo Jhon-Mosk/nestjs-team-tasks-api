@@ -1,10 +1,12 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { Auth } from 'src/common/decorators/auth.decorator';
 import { AccessTokenPayload } from '../auth/types/jwt-payload';
 import { CreateUserResponseDto } from './dto/create-user-response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
 import { UserRole } from './users.entity';
+import { ListUsersQueryDto } from './dto/list-users-query.dto';
+import { ListUsersResponseDto } from './dto/list-users-response.dto';
 
 @Controller('users')
 export class UserController {
@@ -20,11 +22,15 @@ export class UserController {
     return this.userService.create(dto, actor);
   }
 
-  // @Auth(UserRole.OWNER, UserRole.MANAGER)
-  // @Get()
-  // async getUsers(
-  //   @Query() query: ListUsersQueryDto,
-  // ): Promise<ListUsersResponseDto> {}
+  @Auth(UserRole.OWNER, UserRole.MANAGER)
+  @Get()
+  getUsers(
+    @Query() query: ListUsersQueryDto,
+    @Req() req: Request & { user: AccessTokenPayload },
+  ): Promise<ListUsersResponseDto> {
+    const actor = req.user;
+    return this.userService.list(query, actor);
+  }
 
   // @Auth(UserRole.OWNER, UserRole.MANAGER)
   // @Delete(':id')
