@@ -1,12 +1,23 @@
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { Auth } from 'src/common/decorators/auth.decorator';
 import { AccessTokenPayload } from '../auth/types/jwt-payload';
 import { CreateUserResponseDto } from './dto/create-user-response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UserService } from './user.service';
-import { UserRole } from './users.entity';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ListUsersResponseDto } from './dto/list-users-response.dto';
+import { UserService } from './user.service';
+import { UserRole } from './users.entity';
 
 @Controller('users')
 export class UserController {
@@ -32,7 +43,14 @@ export class UserController {
     return this.userService.list(query, actor);
   }
 
-  // @Auth(UserRole.OWNER, UserRole.MANAGER)
-  // @Delete(':id')
-  // async deleteUser(@Param('id') id: string) {}
+  @Auth(UserRole.OWNER, UserRole.MANAGER)
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteUser(
+    @Param('id') id: string,
+    @Req() req: Request & { user: AccessTokenPayload },
+  ): Promise<void> {
+    const actor = req.user;
+    return this.userService.softDelete(id, actor);
+  }
 }
