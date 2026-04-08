@@ -24,12 +24,19 @@ export enum TaskPriority {
   HIGH = 'high',
 }
 
+/** Частичные индексы: только строки с deleted_at IS NULL. + FK по project_id и assignee_id. */
+@Index('idx_tasks_tenant_time', ['organizationId', 'createdAt'], {
+  where: '"deleted_at" IS NULL',
+})
+@Index(
+  'idx_tasks_tenant_assignee_time',
+  ['organizationId', 'assigneeId', 'createdAt'],
+  {
+    where: '"deleted_at" IS NULL',
+  },
+)
 @Index('idx_tasks_project', ['projectId'])
 @Index('idx_tasks_assignee', ['assigneeId'])
-@Index('idx_tasks_assignee_status', ['assigneeId', 'status'])
-@Index('idx_tasks_project_status', ['projectId', 'status'])
-@Index('idx_tasks_priority', ['priority'])
-@Index('idx_tasks_deleted_at', ['deletedAt'])
 @Entity('tasks')
 export class Task {
   @PrimaryGeneratedColumn('uuid')
@@ -46,6 +53,9 @@ export class Task {
 
   @Column({ type: 'enum', enum: TaskPriority, default: TaskPriority.LOW })
   priority!: TaskPriority;
+
+  @Column('uuid', { name: 'organization_id', nullable: false })
+  organizationId!: string;
 
   @Column('uuid', { name: 'assignee_id', nullable: false })
   assigneeId!: string;

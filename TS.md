@@ -170,24 +170,27 @@ src/
 
 ## 4.4 Task
 
-| Поле        | Тип                            |
-| ----------- | ------------------------------ |
-| id          | uuid                           |
-| title       | string                         |
-| description | text                           |
-| status      | enum (todo, in_progress, done) |
-| priority    | enum (low, medium, high)       |
-| assigneeId  | uuid                           |
-| projectId   | uuid                           |
-| dueDate     | timestamp                      |
-| createdAt   | timestamp                      |
-| updatedAt   | timestamp                      |
-| deletedAt   | timestamp                      |
+| Поле            | Тип                            |
+| --------------- | ------------------------------ |
+| id              | uuid                           |
+| title           | string                         |
+| description     | text                           |
+| status          | enum (todo, in_progress, done) |
+| priority        | enum (low, medium, high)       |
+| organizationId  | uuid                           |
+| assigneeId      | uuid                           |
+| projectId       | uuid                           |
+| dueDate         | timestamp                      |
+| createdAt       | timestamp                      |
+| updatedAt       | timestamp                      |
+| deletedAt       | timestamp                      |
 
 Связи:
 
-* ManyToOne → User
+* ManyToOne → User (assignee)
 * ManyToOne → Project
+
+`organizationId` дублирует организацию проекта на уровне строки задачи: так проще изоляция multi-tenant в запросах и индексы без обязательного `JOIN` с `projects` при каждом списке/фильтре. Значение всегда должно совпадать с `projects.organizationId` для выбранного `projectId` (выставляется при создании/смене проекта на стороне сервиса).
 
 ---
 
