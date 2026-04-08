@@ -7,7 +7,7 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
 ## Прогресс по Roadmap
 
 - **День 3–4 — сделано:** полноценный auth (JWT + refresh в Redis + cookie), RBAC scaffolding (`@Roles`, `RolesGuard`, `@Auth`), `GET /auth/me`, юнит-тесты `AuthService` (`src/modules/auth/auth.service.spec.ts`). Правило изоляции: **`organizationId` в каждом CRUD-сервисе** (внедряется при CRUD).
-- **День 5 — сделано:** CRUD **Projects** + **Users** (pagination как в Users, soft delete, RBAC + multi-tenant isolation, юнит-тесты).
+- **День 5 — сделано:** **Organizations** (`GET/PATCH /organizations/me`, `TS.md` §5.3), CRUD **Projects** + **Users** (pagination как в Users, soft delete, RBAC + multi-tenant isolation, юнит-тесты).
 - **День 6 — сделано (CRUD Tasks):** модуль **Tasks** — list с pagination и фильтрами (`status`, `assigneeId`, `priority`), get/update/delete (soft delete, `204` на DELETE), политика в `tasks.policy.ts` (см. `TS.md` §4.4). **Дальше по плану:** Redis cache для `GET /tasks`, отчёты/очередь.
 
 ## Что уже реализовано
@@ -28,7 +28,11 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
   - Юнит-тесты `AuthService`: `src/modules/auth/auth.service.spec.ts` (`npm test -- auth.service.spec.ts`)
   - Юнит-тесты `Users`: `src/modules/users/user.service.spec.ts`, `src/modules/users/user.policy.spec.ts`
   - Юнит-тесты `Projects`: `src/modules/projects/projects.service.spec.ts`
+  - Юнит-тесты `Organizations`: `src/modules/organizations/organizations.service.spec.ts`
   - Юнит-тесты `Tasks`: `src/modules/tasks/tasks.service.spec.ts`, `src/modules/tasks/tasks.policy.spec.ts`
+- **Organizations (`TS.md` §5.3)**
+  - `GET /organizations/me` — своя организация (любая роль с JWT)
+  - `PATCH /organizations/me` — смена имени, только **OWNER**
 - **Users (Day 5)**
   - `POST /users` (owner/manager, роль-ограничения в policy)
   - `GET /users` (pagination)
