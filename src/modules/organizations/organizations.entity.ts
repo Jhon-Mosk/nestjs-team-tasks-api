@@ -24,7 +24,7 @@ export class Organization {
   name!: string;
 
   @Column('uuid', { name: 'owner_id', nullable: true })
-  ownerId!: string;
+  ownerId!: string | null;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'owner_id' })
