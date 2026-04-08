@@ -15,6 +15,10 @@ import { Task } from '../tasks/tasks.entity';
 
 @Index('idx_projects_org', ['organizationId'])
 @Index('idx_projects_deleted_at', ['deletedAt'])
+@Index('uq_projects_org_name_active', ['organizationId', 'name'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 @Entity('projects')
 export class Project {
   @PrimaryGeneratedColumn('uuid')

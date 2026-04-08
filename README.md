@@ -7,7 +7,7 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
 ## Прогресс по Roadmap
 
 - **День 3–4 — сделано:** полноценный auth (JWT + refresh в Redis + cookie), RBAC scaffolding (`@Roles`, `RolesGuard`, `@Auth`), `GET /auth/me`, юнит-тесты `AuthService` (`src/modules/auth/auth.service.spec.ts`). Правило изоляции: **`organizationId` в каждом CRUD-сервисе** (внедряется при CRUD).
-- **День 5 — следующий шаг:** CRUD **Projects** + **Users** (pagination, soft delete, тесты). Сущности и модули частично есть; полный CRUD — в работе.
+- **День 5 — сделано:** CRUD **Projects** + **Users** (pagination как в Users, soft delete, RBAC + multi-tenant isolation, юнит-тесты).
 
 ## Что уже реализовано
 
@@ -25,6 +25,19 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
   - `GET /auth/me`: защищённый endpoint текущего пользователя (данные читаются из БД через `AuthService.me()`)
 - **Тесты**
   - Юнит-тесты `AuthService`: `src/modules/auth/auth.service.spec.ts` (`npm test -- auth.service.spec.ts`)
+  - Юнит-тесты `Users`: `src/modules/users/user.service.spec.ts`, `src/modules/users/user.policy.spec.ts`
+  - Юнит-тесты `Projects`: `src/modules/projects/projects.service.spec.ts`
+- **Users (Day 5)**
+  - `POST /users` (owner/manager, роль-ограничения в policy)
+  - `GET /users` (pagination)
+  - `DELETE /users/:id` (soft delete, `204`)
+- **Projects (Day 5)**
+  - `POST /projects`
+  - `GET /projects` (pagination)
+  - `GET /projects/:id`
+  - `PATCH /projects/:id`
+  - `DELETE /projects/:id` (soft delete, `204`)
+  - Уникальность имени проекта в рамках организации среди активных: partial unique index `uq_projects_org_name_active` (`WHERE deleted_at IS NULL`)
 - **Infra**
   - Docker Compose: `postgres` + `redis`
   - Zod env validation (`src/config/env.schema.ts`)
