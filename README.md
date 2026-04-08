@@ -9,6 +9,7 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
 - **День 3–4 — сделано:** полноценный auth (JWT + refresh в Redis + cookie), RBAC scaffolding (`@Roles`, `RolesGuard`, `@Auth`), `GET /auth/me`, юнит-тесты `AuthService` (`src/modules/auth/auth.service.spec.ts`). Правило изоляции: **`organizationId` в каждом CRUD-сервисе** (внедряется при CRUD).
 - **День 5 — сделано:** **Organizations** (`GET/PATCH /organizations/me`, `TS.md` §5.3), CRUD **Projects** + **Users** (pagination как в Users, soft delete, RBAC + multi-tenant isolation, юнит-тесты).
 - **День 6 — сделано (CRUD Tasks):** модуль **Tasks** — list с pagination и фильтрами (`status`, `assigneeId`, `priority`), get/update/delete (soft delete, `204` на DELETE), политика в `tasks.policy.ts` (см. `TS.md` §4.4). **Дальше по плану:** Redis cache для `GET /tasks`, отчёты/очередь.
+- **Интеграционные тесты CRUD:** `test/crud.integration-spec.ts`, `npm run test:integration` — см. [ниже](#интеграционные-тесты).
 
 ## Что уже реализовано
 
@@ -30,6 +31,7 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
   - Юнит-тесты `Projects`: `src/modules/projects/projects.service.spec.ts`
   - Юнит-тесты `Organizations`: `src/modules/organizations/organizations.service.spec.ts`
   - Юнит-тесты `Tasks`: `src/modules/tasks/tasks.service.spec.ts`, `src/modules/tasks/tasks.policy.spec.ts`
+  - **Интеграционные (HTTP + PostgreSQL + Redis):** `test/crud.integration-spec.ts` — см. раздел [Интеграционные тесты](#интеграционные-тесты) ниже
 - **Organizations (`TS.md` §5.3)**
   - `GET /organizations/me` — своя организация (любая роль с JWT)
   - `PATCH /organizations/me` — смена имени, только **OWNER**
@@ -87,6 +89,26 @@ npm run typeorm:migration:run
 ```
 
 Сгенерированный SQL для `NOT NULL` без default на непустой таблице иногда нужно **дополнить вручную** (nullable → backfill → `SET NOT NULL`).
+
+## Интеграционные тесты
+
+Проверяют CRUD через реальный стек (Nest + TypeORM + Postgres + Redis, `supertest`). Файл сьюита: `test/crud.integration-spec.ts`; хелперы в `test/helpers/`; конфиг Jest: `test/jest-e2e.json`; переменные тестовой БД: `test/.env.integration` (подмешиваются **поверх** `.env.development.local` в скриптах `test:e2e` / `test:integration`).
+
+**Подготовка один раз:** нужны запущенные Postgres и Redis (как для dev). Создай отдельную БД под интеграционные тесты (имя по умолчанию совпадает с `POSTGRES_DB` в `test/.env.integration`, обычно `mydb_integration`):
+
+```bash
+docker compose exec postgres psql -U app -d postgres -c "CREATE DATABASE mydb_integration;"
+```
+
+Миграции применяются автоматически в `beforeAll` первого прогона.
+
+**Запуск:**
+
+```bash
+cd repo
+npm run test:integration   # только *.integration-spec.ts
+npm run test:e2e             # integration + smoke (например GET /health)
+```
 
 ## Quality
 
