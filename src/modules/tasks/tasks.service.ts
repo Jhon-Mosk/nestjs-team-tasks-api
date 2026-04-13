@@ -27,6 +27,7 @@ import {
   normalizeCreateTaskInput,
 } from './tasks.policy';
 import { Task } from './tasks.entity';
+import { TasksListCacheService } from './tasks-list-cache.service';
 
 @Injectable()
 export class TasksService {
@@ -37,6 +38,7 @@ export class TasksService {
     private readonly projectRepository: Repository<Project>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly tasksListCache: TasksListCacheService,
   ) {}
 
   private toDto(task: Task): TaskResponseDto {
@@ -107,6 +109,7 @@ export class TasksService {
       const task = await this.taskRepository.save(
         this.taskRepository.create(taskData),
       );
+      await this.tasksListCache.bumpOrgListCache(organizationId);
       return this.toDto(task);
     } catch (err: unknown) {
       if (
@@ -126,6 +129,18 @@ export class TasksService {
   ): Promise<ListTasksResponseDto> {
     const { organizationId, role, sub } = actor;
     const { currentPage, itemsPerPage, status, assigneeId, priority } = query;
+
+    const version = await this.tasksListCache.getOrgListVersion(organizationId);
+    const cacheKey = this.tasksListCache.buildCacheKey(
+      organizationId,
+      version,
+      actor,
+      query,
+    );
+    const cached = await this.tasksListCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
 
     const where: FindOptionsWhere<Task> = {
       organizationId,
@@ -148,13 +163,16 @@ export class TasksService {
       order: { createdAt: 'DESC' },
     });
 
-    return {
+    const response: ListTasksResponseDto = {
       items: tasks.map((t) => this.toDto(t)),
       totalItems: total,
       totalPages: Math.ceil(total / itemsPerPage),
       currentPage,
       itemsPerPage,
     };
+
+    await this.tasksListCache.set(cacheKey, response);
+    return response;
   }
 
   async getOne(
@@ -189,6 +207,7 @@ export class TasksService {
     }
 
     const saved = await this.taskRepository.save({ ...task, ...dto });
+    await this.tasksListCache.bumpOrgListCache(organizationId);
     return this.toDto(saved);
   }
 
@@ -200,5 +219,6 @@ export class TasksService {
     if (!task) throw new NotFoundException('Task not found');
     assertCanDeleteTask(actor, task);
     await this.taskRepository.softDelete({ id, organizationId });
+    await this.tasksListCache.bumpOrgListCache(organizationId);
   }
 }
