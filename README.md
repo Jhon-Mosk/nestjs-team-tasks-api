@@ -8,7 +8,8 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
 
 - **День 3–4 — сделано:** полноценный auth (JWT + refresh в Redis + cookie), RBAC scaffolding (`@Roles`, `RolesGuard`, `@Auth`), `GET /auth/me`, юнит-тесты `AuthService` (`src/modules/auth/auth.service.spec.ts`). Правило изоляции: **`organizationId` в каждом CRUD-сервисе** (внедряется при CRUD).
 - **День 5 — сделано:** **Organizations** (`GET/PATCH /organizations/me`, `TS.md` §5.3), CRUD **Projects** + **Users** (pagination как в Users, soft delete, RBAC + multi-tenant isolation, юнит-тесты).
-- **День 6 — сделано (CRUD Tasks):** модуль **Tasks** — list с pagination и фильтрами (`status`, `assigneeId`, `priority`), get/update/delete (soft delete, `204` на DELETE), политика в `tasks.policy.ts` (см. `TS.md` §4.4). **Дальше по плану:** Redis cache для `GET /tasks`, отчёты/очередь.
+- **День 6 — сделано (CRUD Tasks):** модуль **Tasks** — list с pagination и фильтрами (`status`, `assigneeId`, `priority`), get/update/delete (soft delete, `204` на DELETE), политика в `tasks.policy.ts` (см. `TS.md` §4.4).
+- **День 7 — сделано (Redis cache `GET /tasks`):** `TasksListCacheService` (`src/modules/tasks/tasks-list-cache.service.ts`), ключи **org-version + scope + hash**, TTL `TASKS_LIST_CACHE_TTL_SEC` (по умолчанию 300 с), инвалидация через `INCR tasks:list:ver:{organizationId}` — см. `TS.md` §6.
 - **Интеграционные тесты CRUD:** `test/crud.integration-spec.ts`, `npm run test:integration` — см. [ниже](#интеграционные-тесты).
 
 ## Что уже реализовано
@@ -46,10 +47,10 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
   - `PATCH /projects/:id`
   - `DELETE /projects/:id` (soft delete, `204`)
   - Уникальность имени проекта в рамках организации среди активных: partial unique index `uq_projects_org_name_active` (`WHERE deleted_at IS NULL`)
-- **Tasks (Day 6)**
+- **Tasks (Day 6–7)**
   - Сущность `Task`: денормализованный **`organizationId`** (согласован с проектом при создании; описание в `TS.md` §4.4), индексы под multi-tenant list и FK — см. `tasks.entity.ts`.
-  - `POST /tasks`, `GET /tasks` (pagination + фильтры), `GET /tasks/:id`, `PATCH /tasks/:id`, `DELETE /tasks/:id` (`204`)
-  - RBAC: `tasks.policy.ts` (allowlist по ролям, как идея `user.policy.ts`); юнит-тесты: `tasks.service.spec.ts`, `tasks.policy.spec.ts`
+  - `POST /tasks`, `GET /tasks` (pagination + фильтры; **кеш Redis** — см. `TS.md` §6), `GET /tasks/:id`, `PATCH /tasks/:id`, `DELETE /tasks/:id` (`204`)
+  - RBAC: `tasks.policy.ts` (allowlist по ролям, как идея `user.policy.ts`); юнит-тесты: `tasks.service.spec.ts`, `tasks.policy.spec.ts`, `tasks-list-cache.service.spec.ts`
 - **Infra**
   - Docker Compose: `postgres` + `redis`
   - Zod env validation (`src/config/env.schema.ts`)
@@ -74,6 +75,7 @@ npm run start:dev
 - PostgreSQL: `POSTGRES_*`
 - Redis: `REDIS_HOST`, `REDIS_PORT`, `REDIS_USER`, `REDIS_USER_PASSWORD` (+ `REDIS_PASSWORD` для контейнера)
 - JWT: `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
+- Опционально: **`TASKS_LIST_CACHE_TTL_SEC`** — TTL кеша `GET /tasks` в секундах (по умолчанию `300`)
 
 ## Миграции (TypeORM)
 
@@ -124,6 +126,8 @@ npm test
 
 ## Roadmap
 
-Дальше по плану: Redis cache для списка задач, Bull/WebSocket, CI, coverage ≥ 70% и т.д.
+Дальше по плану: Bull/WebSocket, CI, coverage ≥ 70% и т.д.
+
+**Статус:** кеш `GET /tasks` реализован (`TasksListCacheService`, `TS.md` §6).
 
 **Правило:** multi-tenant isolation — в запросах к данным всегда ограничивать **`organizationId`** из JWT; для `Task` оно хранится в строке задачи и совпадает с организацией проекта.
