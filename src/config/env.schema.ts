@@ -21,6 +21,9 @@ export const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string(),
   JWT_ACCESS_TTL_SEC: z.coerce.number().default(900),
   JWT_REFRESH_TTL_SEC: z.coerce.number().default(604800),
+
+  /** TTL кеша ответа `GET /tasks` (секунды). По умолчанию 5 минут. */
+  TASKS_LIST_CACHE_TTL_SEC: z.coerce.number().default(300),
 });
 
 export type EnvSchema = z.infer<typeof envSchema>;

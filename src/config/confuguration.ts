@@ -29,6 +29,8 @@ export interface Configuration {
   shutdownTimeoutMs: number;
   redis: RedisConfig;
   jwt: JwtConfig;
+  /** TTL записей кеша `GET /tasks` (секунды). */
+  tasksListCacheTtlSec: number;
 }
 
 export default () => {
@@ -57,5 +59,6 @@ export default () => {
       accessTtlSec: parsed.JWT_ACCESS_TTL_SEC,
       refreshTtlSec: parsed.JWT_REFRESH_TTL_SEC,
     },
+    tasksListCacheTtlSec: parsed.TASKS_LIST_CACHE_TTL_SEC,
   };
 };
