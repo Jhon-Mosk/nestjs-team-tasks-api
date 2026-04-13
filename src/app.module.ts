@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -41,6 +42,28 @@ import { UsersModule } from './modules/users/users.module';
           synchronize: false,
         };
       },
+    }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const { host, port, user, userPassword } =
+          configService.getOrThrow<Configuration['redis']>('redis');
+        return {
+          connection: {
+            host,
+            port,
+            username: user,
+            password: userPassword,
+          },
+          defaultJobOptions: {
+            removeOnComplete: true,
+            removeOnFail: true,
+          },
+        };
+      },
+    }),
+    BullModule.registerQueue({
+      name: 'reports-tasks',
     }),
     HealthModule,
     AuthModule,
