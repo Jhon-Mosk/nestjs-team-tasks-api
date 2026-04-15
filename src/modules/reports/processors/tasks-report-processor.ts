@@ -4,11 +4,12 @@ import { TaskPriority, TaskStatus } from 'src/modules/tasks/tasks.entity';
 import { TasksService } from 'src/modules/tasks/tasks.service';
 import { UserService } from 'src/modules/users/user.service';
 import { UserRole } from 'src/modules/users/users.entity';
+import { QUEUE_NAMES } from 'src/queue/queue.constants';
 import { In } from 'typeorm';
 import { TasksReportDto } from '../dto/tasks-report.dto';
 import { TasksReportJobPayload } from '../types/task-report-job-payload';
 
-@Processor('reports-tasks')
+@Processor(QUEUE_NAMES.REPORTS_TASKS)
 export class TasksReportProcessor extends WorkerHost {
   constructor(
     private readonly userService: UserService,

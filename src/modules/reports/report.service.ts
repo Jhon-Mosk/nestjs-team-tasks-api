@@ -1,6 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
+import { QUEUE_JOBS, QUEUE_NAMES } from 'src/queue/queue.constants';
 import { AccessTokenPayload } from '../auth/types/jwt-payload';
 import { UserService } from '../users/user.service';
 import { CreateTaskReportDto } from './dto/create-task-report.dto';
@@ -13,7 +14,8 @@ import { TasksReportJobPayload } from './types/task-report-job-payload';
 export class ReportsService {
   constructor(
     private readonly userService: UserService,
-    @InjectQueue('reports-tasks') private readonly reportsTasksQueue: Queue,
+    @InjectQueue(QUEUE_NAMES.REPORTS_TASKS)
+    private readonly reportsTasksQueue: Queue,
   ) {}
 
   async createTaskReport(
@@ -42,7 +44,10 @@ export class ReportsService {
       ...(targetUserId && { targetUserId }),
     } satisfies TasksReportJobPayload;
 
-    const job = await this.reportsTasksQueue.add('tasks-report', payload);
+    const job = await this.reportsTasksQueue.add(
+      QUEUE_JOBS.TASKS_REPORT,
+      payload,
+    );
 
     return {
       jobId: String(job.id),

@@ -1,15 +1,16 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
+import { QUEUE_NAMES } from 'src/queue/queue.constants';
 import { UsersModule } from '../users/users.module';
+import { TasksReportProcessor } from './processors/tasks-report-processor';
 import { ReportsService } from './report.service';
 import { ReportsController } from './reports.controller';
-import { TasksReportProcessor } from './processors/tasks-report-processor';
 
 @Module({
   imports: [
     UsersModule,
     BullModule.registerQueue({
-      name: 'reports-tasks',
+      name: QUEUE_NAMES.REPORTS_TASKS,
     }),
   ],
   controllers: [ReportsController],
