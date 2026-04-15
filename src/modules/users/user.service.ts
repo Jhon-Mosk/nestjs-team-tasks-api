@@ -10,6 +10,8 @@ import { IsNull, Repository } from 'typeorm';
 import { AccessTokenPayload } from '../auth/types/jwt-payload';
 import { CreateUserResponseDto } from './dto/create-user-response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { GetUserByIdResponseDto } from './dto/get-user-by-id-response.dto';
+import { GetUserByIdDto } from './dto/get-user-by-id.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ListUsersResponseDto } from './dto/list-users-response.dto';
 import { isAllowedToCreateUser, isAllowedToDeleteUser } from './user.policy';
@@ -110,5 +112,27 @@ export class UserService {
     }
 
     await this.userRepository.softDelete({ id, organizationId });
+  }
+
+  async getById(
+    dto: GetUserByIdDto,
+    actor: AccessTokenPayload,
+  ): Promise<GetUserByIdResponseDto> {
+    const { id } = dto;
+    const { organizationId } = actor;
+    const user = await this.userRepository.findOne({
+      where: { id, organizationId, deletedAt: IsNull() },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 }
