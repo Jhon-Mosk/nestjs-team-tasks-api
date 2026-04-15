@@ -6,14 +6,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
-import { IsNull, Repository } from 'typeorm';
+import { FindOptionsWhere, IsNull, Repository } from 'typeorm';
 import { AccessTokenPayload } from '../auth/types/jwt-payload';
-import { CreateUserResponseDto } from './dto/create-user-response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { GetUserByIdResponseDto } from './dto/get-user-by-id-response.dto';
 import { GetUserByIdDto } from './dto/get-user-by-id.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ListUsersResponseDto } from './dto/list-users-response.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 import { isAllowedToCreateUser, isAllowedToDeleteUser } from './user.policy';
 import { User } from './users.entity';
 
@@ -24,10 +23,21 @@ export class UserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  private toDto(user: User): UserResponseDto {
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      organizationId: user.organizationId,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
   async create(
     dto: CreateUserDto,
     actor: AccessTokenPayload,
-  ): Promise<CreateUserResponseDto> {
+  ): Promise<UserResponseDto> {
     const { organizationId, role } = actor;
 
     if (!isAllowedToCreateUser(role, dto.role)) {
@@ -52,14 +62,7 @@ export class UserService {
         organizationId,
       }),
     );
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      organizationId: user.organizationId,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return this.toDto(user);
   }
 
   async list(
@@ -77,14 +80,7 @@ export class UserService {
     });
 
     return {
-      items: users.map((user) => ({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        organizationId: user.organizationId,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      })),
+      items: users.map((user) => this.toDto(user)),
       totalItems: total,
       totalPages: Math.ceil(total / itemsPerPage),
       currentPage,
@@ -117,7 +113,7 @@ export class UserService {
   async getById(
     dto: GetUserByIdDto,
     actor: AccessTokenPayload,
-  ): Promise<GetUserByIdResponseDto> {
+  ): Promise<UserResponseDto> {
     const { id } = dto;
     const { organizationId } = actor;
     const user = await this.userRepository.findOne({
@@ -127,12 +123,17 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    };
+    return this.toDto(user);
+  }
+
+  async findAll(
+    where: FindOptionsWhere<User>,
+    actor: AccessTokenPayload,
+  ): Promise<UserResponseDto[]> {
+    const { organizationId } = actor;
+    const users = await this.userRepository.find({
+      where: { ...where, organizationId, deletedAt: IsNull() },
+    });
+    return users.map((user) => this.toDto(user));
   }
 }
