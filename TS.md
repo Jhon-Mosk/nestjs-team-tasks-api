@@ -170,20 +170,20 @@ src/
 
 ## 4.4 Task
 
-| Поле            | Тип                            |
-| --------------- | ------------------------------ |
-| id              | uuid                           |
-| title           | string                         |
-| description     | text                           |
-| status          | enum (todo, in_progress, done) |
-| priority        | enum (low, medium, high)       |
-| organizationId  | uuid                           |
-| assigneeId      | uuid                           |
-| projectId       | uuid                           |
-| dueDate         | timestamp                      |
-| createdAt       | timestamp                      |
-| updatedAt       | timestamp                      |
-| deletedAt       | timestamp                      |
+| Поле           | Тип                            |
+| -------------- | ------------------------------ |
+| id             | uuid                           |
+| title          | string                         |
+| description    | text                           |
+| status         | enum (todo, in_progress, done) |
+| priority       | enum (low, medium, high)       |
+| organizationId | uuid                           |
+| assigneeId     | uuid                           |
+| projectId      | uuid                           |
+| dueDate        | timestamp                      |
+| createdAt      | timestamp                      |
+| updatedAt      | timestamp                      |
+| deletedAt      | timestamp                      |
 
 Связи:
 
@@ -361,15 +361,15 @@ POST /reports/tasks
 
 ---
 
-## 7.2.1 Область отчёта (RBAC по исполнителям)
+## 7.2.1 Область отчёта (RBAC по исполнителям, опциональный userId = фильтр по исполнителю внутри допустимой области)
 
 Отчёт агрегирует задачи в рамках **`organizationId` из JWT** и только с **`deleted_at IS NULL`**. В выборку попадают задачи, у которых **`assigneeId`** входит в допустимое множество для роли вызывающего:
 
-| Роль | Какие исполнители (`assigneeId`) учитываются |
-|------|---------------------------------------------|
-| **EMPLOYEE** | только **`sub`** (свои задачи). |
-| **MANAGER** | **`sub`** и все активные пользователи организации с ролью **EMPLOYEE** (`deleted_at IS NULL`). |
-| **OWNER** | **`sub`** и все активные пользователи организации с ролью **MANAGER** или **EMPLOYEE**. |
+| Роль         | Какие исполнители (`assigneeId`) учитываются                                                   |
+| ------------ | ---------------------------------------------------------------------------------------------- |
+| **EMPLOYEE** | только **`sub`** (свои задачи).                                                                |
+| **MANAGER**  | **`sub`** и все активные пользователи организации с ролью **EMPLOYEE** (`deleted_at IS NULL`). |
+| **OWNER**    | **`sub`** и все активные пользователи организации с ролью **MANAGER** или **EMPLOYEE**.        |
 
 Задачи, назначенные на **другого OWNER** (при наличии нескольких владельцев в организации), в отчёт **не входят** — в область явно не попадают «чужие» owner-аккаунты.
 
