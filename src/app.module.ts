@@ -62,9 +62,6 @@ import { UsersModule } from './modules/users/users.module';
         };
       },
     }),
-    BullModule.registerQueue({
-      name: 'reports-tasks',
-    }),
     HealthModule,
     AuthModule,
     UsersModule,
