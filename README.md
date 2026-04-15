@@ -10,6 +10,7 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
 - **День 5 — сделано:** **Organizations** (`GET/PATCH /organizations/me`, `TS.md` §5.3), CRUD **Projects** + **Users** (pagination как в Users, soft delete, RBAC + multi-tenant isolation, юнит-тесты).
 - **День 6 — сделано (CRUD Tasks):** модуль **Tasks** — list с pagination и фильтрами (`status`, `assigneeId`, `priority`), get/update/delete (soft delete, `204` на DELETE), политика в `tasks.policy.ts` (см. `TS.md` §4.4).
 - **День 7 — сделано (Redis cache `GET /tasks`):** `TasksListCacheService` (`src/modules/tasks/tasks-list-cache.service.ts`), ключи **org-version + scope + hash**, TTL `TASKS_LIST_CACHE_TTL_SEC` (по умолчанию 300 с), инвалидация через `INCR tasks:list:ver:{organizationId}` — см. `TS.md` §6.
+- **День 8 — в работе (BullMQ отчёт):** `POST /reports/tasks` ставит job `tasks-report` в очередь `reports-tasks`; payload минимальный (`organizationId`, `requestedByUserId`, `requestedByRole`, опционально `targetUserId`) — см. `TS.md` §7 и `src/modules/reports/types/task-report-job-payload.ts`.
 - **Интеграционные тесты CRUD:** `test/crud.integration-spec.ts`, `npm run test:integration` — см. [ниже](#интеграционные-тесты).
 
 ## Что уже реализовано
@@ -126,8 +127,8 @@ npm test
 
 ## Roadmap
 
-Дальше по плану: Bull/WebSocket, CI, coverage ≥ 70% и т.д.
+Дальше по плану: **BullMQ + отчёт `POST /reports/tasks`** (см. `TS.md` §7, §7.2.1 — область по ролям: EMPLOYEE / MANAGER / OWNER по исполнителям), WebSocket-доставка результата, CI, coverage ≥ 70% и т.д.
 
-**Статус:** кеш `GET /tasks` реализован (`TasksListCacheService`, `TS.md` §6).
+**Статус:** кеш `GET /tasks` реализован (`TasksListCacheService`, `TS.md` §6). Отчёт по очереди — в работе по `Roadmap.md` (день 8), план: `../memory/day8-bull-queue-plan.md`.
 
 **Правило:** multi-tenant isolation — в запросах к данным всегда ограничивать **`organizationId`** из JWT; для `Task` оно хранится в строке задачи и совпадает с организацией проекта.
