@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { UsersModule } from '../users/users.module';
 import { ReportsService } from './report.service';
 import { ReportsController } from './reports.controller';
+import { TasksReportProcessor } from './processors/tasks-report-processor';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { ReportsController } from './reports.controller';
     }),
   ],
   controllers: [ReportsController],
-  providers: [ReportsService],
+  providers: [ReportsService, TasksReportProcessor],
   exports: [ReportsService],
 })
 export class ReportsModule {}
