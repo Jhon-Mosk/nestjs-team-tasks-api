@@ -1,6 +1,6 @@
 import { UserRole } from '../users.entity';
 
-export class ListUserResponseDto {
+export class UserResponseDto {
   id!: string;
   email!: string;
   role!: UserRole;

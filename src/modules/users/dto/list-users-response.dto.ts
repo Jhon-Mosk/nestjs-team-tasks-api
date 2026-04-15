@@ -1,7 +1,7 @@
-import { ListUserResponseDto } from './list-user-response.dto';
+import { UserResponseDto } from './user-response.dto';
 
 export class ListUsersResponseDto {
-  items!: ListUserResponseDto[];
+  items!: UserResponseDto[];
   totalItems!: number;
   totalPages!: number;
   currentPage!: number;
