@@ -6,6 +6,7 @@ import { LoggerModule, nativeLoggerOptions } from 'nestjs-pino';
 import configuration, { Configuration } from './config/confuguration';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { EventsModule } from './modules/events/events.module';
 import { Organization } from './modules/organizations/organizations.entity';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { Project } from './modules/projects/projects.entity';
@@ -69,6 +70,7 @@ import { UsersModule } from './modules/users/users.module';
     ProjectsModule,
     TasksModule,
     ReportsModule,
+    EventsModule,
   ],
 })
 export class AppModule {}
