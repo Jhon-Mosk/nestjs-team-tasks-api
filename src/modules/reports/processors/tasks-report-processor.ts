@@ -7,6 +7,7 @@ import { UserRole } from 'src/modules/users/users.entity';
 import { QUEUE_NAMES } from 'src/queue/queue.constants';
 import { In } from 'typeorm';
 import { TasksReportDto } from '../dto/tasks-report.dto';
+import { ReportsEventsService } from '../reports-events.service';
 import { TasksReportJobPayload } from '../types/task-report-job-payload';
 
 @Processor(QUEUE_NAMES.REPORTS_TASKS)
@@ -14,6 +15,7 @@ export class TasksReportProcessor extends WorkerHost {
   constructor(
     private readonly userService: UserService,
     private readonly taskService: TasksService,
+    private readonly reportsEventsService: ReportsEventsService,
   ) {
     super();
   }
@@ -82,83 +84,97 @@ export class TasksReportProcessor extends WorkerHost {
   ): Promise<TasksReportDto> {
     const { organizationId, requestedByUserId, requestedByRole } = job.data;
 
-    const actor = {
-      sub: requestedByUserId,
-      organizationId,
-      role: requestedByRole,
-    };
+    try {
+      const actor = {
+        sub: requestedByUserId,
+        organizationId,
+        role: requestedByRole,
+      };
 
-    const assigneeIds = await this.getAssigneeIds(job.data);
+      const assigneeIds = await this.getAssigneeIds(job.data);
 
-    const tasks = await this.taskService.findAll(
-      {
-        assigneeId: In(assigneeIds),
-      },
-      actor,
-    );
-
-    const distributionByPriorityKeys: TaskPriority[] =
-      Object.values(TaskPriority);
-    const distributionByStatusKeys: TaskStatus[] = Object.values(TaskStatus);
-
-    const report: TasksReportDto = {
-      total: tasks.length,
-      doneCount: 0,
-      donePercent: 0,
-      distributionByPriority: distributionByPriorityKeys.reduce(
-        (acc, key) => {
-          acc[key] = 0;
-          return acc;
+      const tasks = await this.taskService.findAll(
+        {
+          assigneeId: In(assigneeIds),
         },
-        {} as Record<TaskPriority, number>,
-      ),
-      distributionByStatus: distributionByStatusKeys.reduce(
-        (acc, key) => {
-          acc[key] = 0;
-          return acc;
-        },
-        {} as Record<TaskStatus, number>,
-      ),
-      overdueCount: 0,
-      avgCompletionTime: 0,
-      medianCompletionTime: 0,
-    };
+        actor,
+      );
 
-    const completionTimes: number[] = [];
+      const distributionByPriorityKeys: TaskPriority[] =
+        Object.values(TaskPriority);
+      const distributionByStatusKeys: TaskStatus[] = Object.values(TaskStatus);
 
-    const now = Date.now();
-    tasks.forEach((task) => {
-      if (task.status === TaskStatus.DONE) {
-        report.doneCount++;
+      const report: TasksReportDto = {
+        total: tasks.length,
+        doneCount: 0,
+        donePercent: 0,
+        distributionByPriority: distributionByPriorityKeys.reduce(
+          (acc, key) => {
+            acc[key] = 0;
+            return acc;
+          },
+          {} as Record<TaskPriority, number>,
+        ),
+        distributionByStatus: distributionByStatusKeys.reduce(
+          (acc, key) => {
+            acc[key] = 0;
+            return acc;
+          },
+          {} as Record<TaskStatus, number>,
+        ),
+        overdueCount: 0,
+        avgCompletionTime: 0,
+        medianCompletionTime: 0,
+      };
 
-        completionTimes.push(
-          (task.updatedAt.getTime() - task.createdAt.getTime()) / 1000,
-        );
-      }
+      const completionTimes: number[] = [];
 
-      report.distributionByPriority[task.priority]++;
-      report.distributionByStatus[task.status]++;
+      const now = Date.now();
+      tasks.forEach((task) => {
+        if (task.status === TaskStatus.DONE) {
+          report.doneCount++;
 
-      if (task.dueDate.getTime() < now && task.status !== TaskStatus.DONE) {
-        report.overdueCount++;
-      }
-    });
+          completionTimes.push(
+            (task.updatedAt.getTime() - task.createdAt.getTime()) / 1000,
+          );
+        }
 
-    report.donePercent = report.total
-      ? (report.doneCount / report.total) * 100
-      : 0;
+        report.distributionByPriority[task.priority]++;
+        report.distributionByStatus[task.status]++;
 
-    report.avgCompletionTime = completionTimes.length
-      ? completionTimes.reduce((acc, time) => acc + time, 0) /
-        completionTimes.length
-      : 0;
+        if (task.dueDate.getTime() < now && task.status !== TaskStatus.DONE) {
+          report.overdueCount++;
+        }
+      });
 
-    report.medianCompletionTime = this.calculateMedian(completionTimes);
+      report.donePercent = report.total
+        ? (report.doneCount / report.total) * 100
+        : 0;
 
-    // Искуственная задержка для демонстрации работы очереди
-    const delay = Math.floor(Math.random() * 500) + 200;
-    await new Promise((resolve) => setTimeout(resolve, delay));
+      report.avgCompletionTime = completionTimes.length
+        ? completionTimes.reduce((acc, time) => acc + time, 0) /
+          completionTimes.length
+        : 0;
 
-    return report;
+      report.medianCompletionTime = this.calculateMedian(completionTimes);
+
+      // Искуственная задержка для демонстрации работы очереди
+      const delay = Math.floor(Math.random() * 500) + 200;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      this.reportsEventsService.emitTaskReportDone(requestedByUserId, {
+        jobId: String(job.id),
+        report,
+      });
+
+      return report;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.reportsEventsService.emitTaskReportFailed(requestedByUserId, {
+        jobId: String(job.id),
+        error: message,
+      });
+      throw error;
+    }
   }
 }
