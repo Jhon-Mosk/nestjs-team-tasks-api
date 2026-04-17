@@ -5,6 +5,8 @@ import { UsersModule } from '../users/users.module';
 import { TasksReportProcessor } from './processors/tasks-report-processor';
 import { ReportsService } from './report.service';
 import { ReportsController } from './reports.controller';
+import { EventsModule } from '../events/events.module';
+import { ReportsEventsService } from './reports-events.service';
 
 @Module({
   imports: [
@@ -12,9 +14,10 @@ import { ReportsController } from './reports.controller';
     BullModule.registerQueue({
       name: QUEUE_NAMES.REPORTS_TASKS,
     }),
+    EventsModule,
   ],
   controllers: [ReportsController],
-  providers: [ReportsService, TasksReportProcessor],
+  providers: [ReportsService, TasksReportProcessor, ReportsEventsService],
   exports: [ReportsService],
 })
 export class ReportsModule {}
