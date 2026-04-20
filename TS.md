@@ -410,6 +410,59 @@ Worker выполняет:
 
 Так исключается подписка на чужие отчёты при угаданном `userId`.
 
+### 7.4.1 Контракт WebSocket (Socket.io)
+
+#### Аутентификация handshake
+
+Access JWT можно передать одним из способов:
+
+- `handshake.auth.token = "<accessToken>"`
+- или заголовком `Authorization: Bearer <accessToken>`
+
+Сервер валидирует access JWT (тот же secret/TTL, что и HTTP) и делает:
+
+- `socket.join("user:{sub}")`, где `{sub}` — `sub` из валидного JWT.
+
+Клиент **не может** выбрать room по произвольному `userId`.
+
+#### События
+
+Имена событий:
+
+- `tasks-report:done`
+- `tasks-report:failed`
+
+Payload:
+
+`tasks-report:done`
+
+```json
+{
+  "jobId": "string",
+  "report": {
+    "total": 0,
+    "doneCount": 0,
+    "donePercent": 0,
+    "distributionByPriority": { "low": 0, "medium": 0, "high": 0 },
+    "distributionByStatus": { "todo": 0, "in_progress": 0, "done": 0 },
+    "overdueCount": 0,
+    "avgCompletionTime": 0,
+    "medianCompletionTime": 0
+  }
+}
+```
+
+`tasks-report:failed`
+
+```json
+{
+  "jobId": "string",
+  "error": "string"
+}
+```
+
+Поле `jobId` используется для корреляции с ответом `POST /reports/tasks`.
+
 ---
 
 # 8. Cron Job
