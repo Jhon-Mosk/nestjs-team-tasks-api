@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { Auth } from 'src/common/decorators/auth.decorator';
 import { AccessTokenPayload } from '../auth/types/jwt-payload';
-import { CreateUserResponseDto } from './dto/create-user-response.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ListUsersResponseDto } from './dto/list-users-response.dto';
 import { UserService } from './user.service';
@@ -28,7 +28,7 @@ export class UserController {
   createUser(
     @Body() dto: CreateUserDto,
     @Req() req: Request & { user: AccessTokenPayload },
-  ): Promise<CreateUserResponseDto> {
+  ): Promise<UserResponseDto> {
     const actor = req.user;
     return this.userService.create(dto, actor);
   }

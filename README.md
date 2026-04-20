@@ -10,7 +10,10 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
 - **День 5 — сделано:** **Organizations** (`GET/PATCH /organizations/me`, `TS.md` §5.3), CRUD **Projects** + **Users** (pagination как в Users, soft delete, RBAC + multi-tenant isolation, юнит-тесты).
 - **День 6 — сделано (CRUD Tasks):** модуль **Tasks** — list с pagination и фильтрами (`status`, `assigneeId`, `priority`), get/update/delete (soft delete, `204` на DELETE), политика в `tasks.policy.ts` (см. `TS.md` §4.4).
 - **День 7 — сделано (Redis cache `GET /tasks`):** `TasksListCacheService` (`src/modules/tasks/tasks-list-cache.service.ts`), ключи **org-version + scope + hash**, TTL `TASKS_LIST_CACHE_TTL_SEC` (по умолчанию 300 с), инвалидация через `INCR tasks:list:ver:{organizationId}` — см. `TS.md` §6.
+- **День 8 — сделано (BullMQ отчёт + WebSocket):** `POST /reports/tasks` ставит job `tasks-report` в очередь `reports-tasks`; payload минимальный (`organizationId`, `requestedByUserId`, `requestedByRole`, опционально `targetUserId`) — `src/modules/reports/types/task-report-job-payload.ts`; worker `TasksReportProcessor` считает метрики по `TS.md` §7.3. Результат доставляется по Socket.io: **`EventsGateway`** (JWT в handshake → комната `user:{sub}`), **`ReportsEventsService`** эмитит `tasks-report:done` / `tasks-report:failed` с `{ jobId, report }` или ошибкой — см. `src/modules/events/`, `src/modules/reports/reports-events.service.ts`, `reports-ws.constants.ts`.
 - **Интеграционные тесты CRUD:** `test/crud.integration-spec.ts`, `npm run test:integration` — см. [ниже](#интеграционные-тесты).
+- **Интеграционный тест WebSocket (Day 8):** `test/reports.ws.integration-spec.ts` — проверяет WS auth + room `user:{sub}` и что `TasksReportProcessor` эмитит `tasks-report:done`.
+- **Юнит-тесты reports (Day 8):** `src/modules/reports/report.service.spec.ts`, `src/modules/reports/processors/tasks-report-processor.spec.ts`.
 
 ## Что уже реализовано
 
@@ -126,8 +129,10 @@ npm test
 
 ## Roadmap
 
-Дальше по плану: Bull/WebSocket, CI, coverage ≥ 70% и т.д.
+**День 8 (очередь + WS):** producer, processor и WebSocket-доставка отчёта реализованы; дальше по плану — тесты/докрутка шага 5–7 (`../memory/day8-bull-queue-plan.md`), затем CI и coverage ≥ 70% (`Roadmap.md`).
 
-**Статус:** кеш `GET /tasks` реализован (`TasksListCacheService`, `TS.md` §6).
+**Клиент WebSocket (кратко):** подключение к тому же origin, что и HTTP; передать access JWT в `auth: { token: '<accessJwt>' }` или в заголовке `Authorization: Bearer …`; слушать события `tasks-report:done` и при необходимости `tasks-report:failed` (имена в `src/modules/reports/reports-ws.constants.ts`).
+
+**Статус:** кеш `GET /tasks` — `TasksListCacheService` (`TS.md` §6). Отчёт BullMQ + WS — см. выше и `../memory/decision-log.md` (Day 8).
 
 **Правило:** multi-tenant isolation — в запросах к данным всегда ограничивать **`organizationId`** из JWT; для `Task` оно хранится в строке задачи и совпадает с организацией проекта.

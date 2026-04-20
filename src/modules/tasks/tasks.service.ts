@@ -20,14 +20,14 @@ import { ListTasksQueryDto } from './dto/list-tasks-query.dto';
 import { ListTasksResponseDto } from './dto/list-tasks-response.dto';
 import { TaskResponseDto } from './dto/task-response.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { TasksListCacheService } from './tasks-list-cache.service';
+import { Task } from './tasks.entity';
 import {
   assertCanDeleteTask,
   assertCanReadTask,
   assertCanUpdateTask,
   normalizeCreateTaskInput,
 } from './tasks.policy';
-import { Task } from './tasks.entity';
-import { TasksListCacheService } from './tasks-list-cache.service';
 
 @Injectable()
 export class TasksService {
@@ -220,5 +220,16 @@ export class TasksService {
     assertCanDeleteTask(actor, task);
     await this.taskRepository.softDelete({ id, organizationId });
     await this.tasksListCache.bumpOrgListCache(organizationId);
+  }
+
+  async findAll(
+    where: FindOptionsWhere<Task>,
+    actor: AccessTokenPayload,
+  ): Promise<TaskResponseDto[]> {
+    const { organizationId } = actor;
+    const tasks = await this.taskRepository.find({
+      where: { ...where, organizationId, deletedAt: IsNull() },
+    });
+    return tasks.map((t) => this.toDto(t));
   }
 }

@@ -12,5 +12,6 @@ import { TasksService } from './tasks.service';
   imports: [TypeOrmModule.forFeature([Task, Project, User]), RedisModule],
   controllers: [TasksController],
   providers: [TasksService, TasksListCacheService],
+  exports: [TasksService],
 })
 export class TasksModule {}
