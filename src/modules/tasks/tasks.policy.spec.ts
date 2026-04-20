@@ -10,7 +10,7 @@ import {
   isAllowedToReadAnyTaskInOrg,
   normalizeCreateTaskInput,
 } from './tasks.policy';
-import { Task, TaskPriority } from './tasks.entity';
+import { Task, TaskPriority, TaskStatus } from './tasks.entity';
 
 describe('TasksPolicy', () => {
   const employee: AccessTokenPayload = {
@@ -100,6 +100,14 @@ describe('TasksPolicy', () => {
       expect(normalized.assigneeId).toBe('other');
       expect(normalized.priority).toBe(TaskPriority.HIGH);
     });
+
+    it('forbids setting status=OVERDUE manually', () => {
+      expect(() =>
+        normalizeCreateTaskInput(owner, {
+          status: TaskStatus.OVERDUE,
+        } as CreateTaskDto),
+      ).toThrow(ForbiddenException);
+    });
   });
 
   describe('assertCanUpdateTask', () => {
@@ -113,6 +121,15 @@ describe('TasksPolicy', () => {
       expect(() =>
         assertCanUpdateTask(employee, task, {
           priority: TaskPriority.HIGH,
+        } as UpdateTaskDto),
+      ).toThrow(ForbiddenException);
+    });
+
+    it('forbids setting status=OVERDUE manually', () => {
+      const task = { assigneeId: owner.sub } as Task;
+      expect(() =>
+        assertCanUpdateTask(owner, task, {
+          status: TaskStatus.OVERDUE,
         } as UpdateTaskDto),
       ).toThrow(ForbiddenException);
     });

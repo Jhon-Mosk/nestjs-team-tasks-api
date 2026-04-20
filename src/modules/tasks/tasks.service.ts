@@ -99,8 +99,8 @@ export class TasksService {
         projectId: dto.projectId,
         dueDate: dto.dueDate,
       };
-      if (dto.status !== undefined) {
-        taskData.status = dto.status;
+      if (normalized.status !== undefined) {
+        taskData.status = normalized.status;
       }
       if (normalized.priority !== undefined) {
         taskData.priority = normalized.priority;

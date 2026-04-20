@@ -168,6 +168,29 @@ describe('TasksService', () => {
         },
       });
     });
+
+    it('forbids setting status=OVERDUE manually', async () => {
+      const dto = {
+        title: 'T',
+        description: 'D',
+        projectId: 'p-1',
+        dueDate: new Date(),
+        status: TaskStatus.OVERDUE,
+      } as CreateTaskDto;
+
+      projectRepository.findOne.mockResolvedValue({
+        id: dto.projectId,
+        organizationId: orgId,
+      } as Project);
+      userRepository.findOne.mockResolvedValue({
+        id: owner.sub,
+        organizationId: orgId,
+      } as User);
+
+      await expect(tasksService.create(dto, owner)).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+    });
   });
 
   describe('list', () => {

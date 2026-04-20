@@ -16,6 +16,7 @@ import { Task } from './modules/tasks/tasks.entity';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { User } from './modules/users/users.entity';
 import { UsersModule } from './modules/users/users.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { UsersModule } from './modules/users/users.module';
     TasksModule,
     ReportsModule,
     EventsModule,
+    ScheduleModule.forRoot(),
   ],
 })
 export class AppModule {}
