@@ -11,6 +11,7 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
 - **День 6 — сделано (CRUD Tasks):** модуль **Tasks** — list с pagination и фильтрами (`status`, `assigneeId`, `priority`), get/update/delete (soft delete, `204` на DELETE), политика в `tasks.policy.ts` (см. `TS.md` §4.4).
 - **День 7 — сделано (Redis cache `GET /tasks`):** `TasksListCacheService` (`src/modules/tasks/tasks-list-cache.service.ts`), ключи **org-version + scope + hash**, TTL `TASKS_LIST_CACHE_TTL_SEC` (по умолчанию 300 с), инвалидация через `INCR tasks:list:ver:{organizationId}` — см. `TS.md` §6.
 - **День 8 — сделано (BullMQ отчёт + WebSocket):** `POST /reports/tasks` ставит job `tasks-report` в очередь `reports-tasks`; payload минимальный (`organizationId`, `requestedByUserId`, `requestedByRole`, опционально `targetUserId`) — `src/modules/reports/types/task-report-job-payload.ts`; worker `TasksReportProcessor` считает метрики по `TS.md` §7.3. Результат доставляется по Socket.io: **`EventsGateway`** (JWT в handshake → комната `user:{sub}`), **`ReportsEventsService`** эмитит `tasks-report:done` / `tasks-report:failed` с `{ jobId, report }` или ошибкой — см. `src/modules/events/`, `src/modules/reports/reports-events.service.ts`, `reports-ws.constants.ts`.
+- **Cron / overdue (`TS.md` §8):** статус `overdue` в enum, миграция, ежедневный cron `TaskOverdueCronService`, через API статус `overdue` задать нельзя — см. `src/modules/tasks/crons/`, `tasks.policy.ts`, `../memory/decision-log.md`.
 - **Интеграционные тесты CRUD:** `test/crud.integration-spec.ts`, `npm run test:integration` — см. [ниже](#интеграционные-тесты).
 - **Интеграционный тест WebSocket (Day 8):** `test/reports.ws.integration-spec.ts` — проверяет WS auth + room `user:{sub}` и что `TasksReportProcessor` эмитит `tasks-report:done`.
 - **Юнит-тесты reports (Day 8):** `src/modules/reports/report.service.spec.ts`, `src/modules/reports/processors/tasks-report-processor.spec.ts`.
@@ -54,10 +55,14 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
   - Сущность `Task`: денормализованный **`organizationId`** (согласован с проектом при создании; описание в `TS.md` §4.4), индексы под multi-tenant list и FK — см. `tasks.entity.ts`.
   - `POST /tasks`, `GET /tasks` (pagination + фильтры; **кеш Redis** — см. `TS.md` §6), `GET /tasks/:id`, `PATCH /tasks/:id`, `DELETE /tasks/:id` (`204`)
   - RBAC: `tasks.policy.ts` (allowlist по ролям, как идея `user.policy.ts`); юнит-тесты: `tasks.service.spec.ts`, `tasks.policy.spec.ts`, `tasks-list-cache.service.spec.ts`
+- **Cron просроченных задач (`TS.md` §8)**
+  - Статус **`overdue`** в enum `TaskStatus`; миграция `src/database/migrations/*AddOverdueTaskStatus*.ts` (расширение PG enum `tasks_status_enum`).
+  - Ежедневно (`@nestjs/schedule`, `CronExpression.EVERY_DAY_AT_MIDNIGHT`): `TaskOverdueCronService` — `UPDATE` задач с `dueDate < now`, не `done`/`overdue`, не soft-deleted → `status = overdue` (`src/modules/tasks/crons/task-overdue.cron.service.ts`).
+  - Через **API нельзя** вручную задать `status: overdue` (`tasks.policy.ts` + тесты).
 - **Infra**
   - Docker Compose: `postgres` + `redis`
   - Zod env validation (`src/config/env.schema.ts`)
-  - Logging через `nestjs-pino`
+  - Logging через `nestjs-pino`; в HTTP-логах **redact** для `Authorization` / `Cookie` / `Set-Cookie` (`src/app.module.ts` → `pinoHttp.redact`)
   - Global `ValidationPipe` и `HttpExceptionFilter`
 
 ## Быстрый старт (dev)
@@ -129,9 +134,12 @@ npm test
 
 ## Roadmap
 
-**День 8 (очередь + WS):** producer, processor и WebSocket-доставка отчёта реализованы; дальше по плану — тесты/докрутка шага 5–7 (`../memory/day8-bull-queue-plan.md`), затем CI и coverage ≥ 70% (`Roadmap.md`).
+**День 8 (очередь + WS):** закрыт — BullMQ, `POST /reports/tasks`, processor, WebSocket-доставка, unit/integration тесты — см. `../memory/decision-log.md`.
+**Cron / overdue (`TS.md` §8):** статус `overdue`, cron, миграция, запрет ручной установки через API — см. выше и `../memory/decision-log.md`.
 
 **Клиент WebSocket (кратко):** подключение к тому же origin, что и HTTP; передать access JWT в `auth: { token: '<accessJwt>' }` или в заголовке `Authorization: Bearer …`; слушать события `tasks-report:done` и при необходимости `tasks-report:failed` (имена в `src/modules/reports/reports-ws.constants.ts`).
+
+**Следующий фокус:** CI и coverage ≥ 70% — см. `../Roadmap.md` (День 9).
 
 **Статус:** кеш `GET /tasks` — `TasksListCacheService` (`TS.md` §6). Отчёт BullMQ + WS — см. выше и `../memory/decision-log.md` (Day 8).
 
