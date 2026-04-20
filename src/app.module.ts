@@ -24,7 +24,17 @@ import { UsersModule } from './modules/users/users.module';
       load: [configuration],
     }),
     LoggerModule.forRoot({
-      pinoHttp: nativeLoggerOptions,
+      pinoHttp: {
+        ...nativeLoggerOptions,
+        redact: {
+          paths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'res.headers["set-cookie"]',
+          ],
+          censor: '[REDACTED]',
+        },
+      },
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
