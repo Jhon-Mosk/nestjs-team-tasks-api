@@ -13,6 +13,7 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
 - **День 8 — сделано (BullMQ отчёт + WebSocket):** `POST /reports/tasks` ставит job `tasks-report` в очередь `reports-tasks`; payload минимальный (`organizationId`, `requestedByUserId`, `requestedByRole`, опционально `targetUserId`) — `src/modules/reports/types/task-report-job-payload.ts`; worker `TasksReportProcessor` считает метрики по `TS.md` §7.3. Результат доставляется по Socket.io: **`EventsGateway`** (JWT в handshake → комната `user:{sub}`), **`ReportsEventsService`** эмитит `tasks-report:done` / `tasks-report:failed` с `{ jobId, report }` или ошибкой — см. `src/modules/events/`, `src/modules/reports/reports-events.service.ts`, `reports-ws.constants.ts`.
 - **Интеграционные тесты CRUD:** `test/crud.integration-spec.ts`, `npm run test:integration` — см. [ниже](#интеграционные-тесты).
 - **Интеграционный тест WebSocket (Day 8):** `test/reports.ws.integration-spec.ts` — проверяет WS auth + room `user:{sub}` и что `TasksReportProcessor` эмитит `tasks-report:done`.
+- **Юнит-тесты reports (Day 8):** `src/modules/reports/report.service.spec.ts`, `src/modules/reports/processors/tasks-report-processor.spec.ts`.
 
 ## Что уже реализовано
 
