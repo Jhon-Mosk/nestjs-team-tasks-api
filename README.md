@@ -12,6 +12,7 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
 - **День 7 — сделано (Redis cache `GET /tasks`):** `TasksListCacheService` (`src/modules/tasks/tasks-list-cache.service.ts`), ключи **org-version + scope + hash**, TTL `TASKS_LIST_CACHE_TTL_SEC` (по умолчанию 300 с), инвалидация через `INCR tasks:list:ver:{organizationId}` — см. `TS.md` §6.
 - **День 8 — сделано (BullMQ отчёт + WebSocket):** `POST /reports/tasks` ставит job `tasks-report` в очередь `reports-tasks`; payload минимальный (`organizationId`, `requestedByUserId`, `requestedByRole`, опционально `targetUserId`) — `src/modules/reports/types/task-report-job-payload.ts`; worker `TasksReportProcessor` считает метрики по `TS.md` §7.3. Результат доставляется по Socket.io: **`EventsGateway`** (JWT в handshake → комната `user:{sub}`), **`ReportsEventsService`** эмитит `tasks-report:done` / `tasks-report:failed` с `{ jobId, report }` или ошибкой — см. `src/modules/events/`, `src/modules/reports/reports-events.service.ts`, `reports-ws.constants.ts`.
 - **Интеграционные тесты CRUD:** `test/crud.integration-spec.ts`, `npm run test:integration` — см. [ниже](#интеграционные-тесты).
+- **Интеграционный тест WebSocket (Day 8):** `test/reports.ws.integration-spec.ts` — проверяет WS auth + room `user:{sub}` и что `TasksReportProcessor` эмитит `tasks-report:done`.
 
 ## Что уже реализовано
 
