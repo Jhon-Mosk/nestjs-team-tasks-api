@@ -74,6 +74,9 @@ export function normalizeCreateTaskInput(
   actor: AccessTokenPayload,
   dto: CreateTaskDto,
 ): NormalizedCreateTaskInput {
+  if (dto.status === TaskStatus.OVERDUE) {
+    throw new ForbiddenException('Insufficient permissions');
+  }
   if (!isAllowedToAssignTaskToOthers(actor.role)) {
     if (dto.assigneeId && dto.assigneeId !== actor.sub) {
       throw new ForbiddenException('Insufficient permissions');
@@ -106,6 +109,9 @@ export function assertCanUpdateTask(
 ) {
   assertCanReadTask(actor, task);
 
+  if (dto.status === TaskStatus.OVERDUE) {
+    throw new ForbiddenException('Insufficient permissions');
+  }
   if (
     !isAllowedToChangeAssigneeOnUpdate(actor.role) &&
     dto.assigneeId !== undefined
