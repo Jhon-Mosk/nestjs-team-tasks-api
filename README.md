@@ -77,7 +77,7 @@ npm run start:dev
 
 ## ENV
 
-Создай `.env` на основе `.env.example` (или используй `.env.development.local` для локального запуска).
+Создай `.env` на основе `.env.example` (файл в `.gitignore`, не коммить).
 
 Минимально нужны:
 - PostgreSQL: `POSTGRES_*`
@@ -87,7 +87,7 @@ npm run start:dev
 
 ## Миграции (TypeORM)
 
-DataSource: `src/database/data-source.ts`. Команды используют `.env.development.local` (см. `package.json` → `typeorm`).
+DataSource: `src/database/data-source.ts`. Команды читают `.env` (см. `package.json` → `typeorm`).
 
 PostgreSQL должен быть доступен (например `npm run docker:up:dev`).
 
@@ -102,7 +102,7 @@ npm run typeorm:migration:run
 
 ## Интеграционные тесты
 
-Проверяют CRUD через реальный стек (Nest + TypeORM + Postgres + Redis, `supertest`). Файл сьюита: `test/crud.integration-spec.ts`; хелперы в `test/helpers/`; конфиг Jest: `test/jest-e2e.json`; переменные тестовой БД: `test/.env.integration` (подмешиваются **поверх** `.env.development.local` в скриптах `test:e2e` / `test:integration`).
+Проверяют CRUD через реальный стек (Nest + TypeORM + Postgres + Redis, `supertest`). Файл сьюита: `test/crud.integration-spec.ts`; хелперы в `test/helpers/`; конфиг Jest: `test/jest-e2e.json`; переменные тестовой БД: `test/.env.integration` (подмешиваются **поверх** `.env` в скриптах `test:e2e` / `test:integration`).
 
 **Подготовка один раз:** нужны запущенные Postgres и Redis (как для dev). Создай отдельную БД под интеграционные тесты (имя по умолчанию совпадает с `POSTGRES_DB` в `test/.env.integration`, обычно `mydb_integration`):
 
