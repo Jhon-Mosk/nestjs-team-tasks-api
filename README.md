@@ -63,7 +63,7 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
   - Docker Compose: `postgres` + `redis`
   - Zod env validation (`src/config/env.schema.ts`)
   - Logging через `nestjs-pino`; в HTTP-логах **redact** для `Authorization` / `Cookie` / `Set-Cookie` (`src/app.module.ts` → `pinoHttp.redact`)
-  - Global `ValidationPipe` и `HttpExceptionFilter`
+  - Global `ValidationPipe` и `HttpExceptionFilter` (единый формат ошибок)
 
 ## Быстрый старт (dev)
 
@@ -128,6 +128,22 @@ npm run lint
 npm test
 npm run test:cov
 ```
+
+## Errors format (Day 9)
+
+Глобальный `HttpExceptionFilter` приводит ответы об ошибках к единому формату из `TS.md` §9:
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "error": "Bad Request",
+  "timestamp": "...",
+  "path": "/tasks"
+}
+```
+
+`message` может быть строкой или массивом строк (для ошибок валидации).
 
 ## Coverage (Day 9)
 

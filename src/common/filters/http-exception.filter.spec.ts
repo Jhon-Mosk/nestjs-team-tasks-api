@@ -40,7 +40,8 @@ describe('HttpExceptionFilter', () => {
       expect.objectContaining({
         statusCode: 400,
         path: '/x',
-        message: { message: 'bad', error: 'Bad Request' },
+        message: 'bad',
+        error: 'Bad Request',
         timestamp: expect.any(String) as unknown as string,
       }),
     );
@@ -65,6 +66,7 @@ describe('HttpExceptionFilter', () => {
         statusCode: 500,
         path: '/y',
         message: 'Internal server error',
+        error: 'Internal Server Error',
         timestamp: expect.any(String) as unknown as string,
       }),
     );
