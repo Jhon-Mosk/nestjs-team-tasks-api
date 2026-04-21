@@ -51,17 +51,6 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U app -d mydb" --health-interval 5s
           --health-timeout 5s --health-retries 20
-      redis:
-        image: redis:7-alpine
-        env:
-          REDIS_PASSWORD: my_redis_password
-          REDIS_USER: my_user
-          REDIS_USER_PASSWORD: my_user_password
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s
-          --health-retries 20
 
     steps:
       - name: Checkout repository
@@ -94,6 +83,34 @@ jobs:
           PGPASSWORD: secret
         run: |
           psql -h 127.0.0.1 -U app -d postgres -c "CREATE DATABASE mydb_integration;" || true
+
+      # Official redis image ignores REDIS_* in `services:` — ACL must match
+      # `docker-compose.yml` (same shell bootstrap as the redis service there).
+      - name: Start Redis with ACL (match docker-compose)
+        run: |
+          docker rm -f redis-ci 2>/dev/null || true
+          docker run -d --name redis-ci -p 6379:6379 \
+            -e REDIS_PASSWORD=my_redis_password \
+            -e REDIS_USER=my_user \
+            -e REDIS_USER_PASSWORD=my_user_password \
+            redis:7-alpine sh -c '
+              mkdir -p /usr/local/etc/redis &&
+              echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+              echo "requirepass $REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+              echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+              echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+              echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+              echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+              redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+            '
+
+      - name: Wait for Redis
+        run: |
+          for i in {1..30}; do
+            docker exec redis-ci redis-cli --user my_user -a my_user_password ping | grep -q PONG && exit 0
+            sleep 1
+          done
+          exit 1
 
       - name: Generate env files for tests
         run: |
