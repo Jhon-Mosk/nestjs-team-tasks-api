@@ -63,7 +63,7 @@ Production-ready backend API проект для резюме: **NestJS + TypeOR
   - Docker Compose: `postgres` + `redis`
   - Zod env validation (`src/config/env.schema.ts`)
   - Logging через `nestjs-pino`; в HTTP-логах **redact** для `Authorization` / `Cookie` / `Set-Cookie` (`src/app.module.ts` → `pinoHttp.redact`)
-  - Global `ValidationPipe` и `HttpExceptionFilter`
+  - Global `ValidationPipe` и `HttpExceptionFilter` (единый формат ошибок)
 
 ## Быстрый старт (dev)
 
@@ -77,7 +77,7 @@ npm run start:dev
 
 ## ENV
 
-Создай `.env` на основе `.env.example` (или используй `.env.development.local` для локального запуска).
+Создай `.env` на основе `.env.example` (файл в `.gitignore`, не коммить).
 
 Минимально нужны:
 - PostgreSQL: `POSTGRES_*`
@@ -87,7 +87,7 @@ npm run start:dev
 
 ## Миграции (TypeORM)
 
-DataSource: `src/database/data-source.ts`. Команды используют `.env.development.local` (см. `package.json` → `typeorm`).
+DataSource: `src/database/data-source.ts`. Команды читают `.env` (см. `package.json` → `typeorm`).
 
 PostgreSQL должен быть доступен (например `npm run docker:up:dev`).
 
@@ -102,7 +102,7 @@ npm run typeorm:migration:run
 
 ## Интеграционные тесты
 
-Проверяют CRUD через реальный стек (Nest + TypeORM + Postgres + Redis, `supertest`). Файл сьюита: `test/crud.integration-spec.ts`; хелперы в `test/helpers/`; конфиг Jest: `test/jest-e2e.json`; переменные тестовой БД: `test/.env.integration` (подмешиваются **поверх** `.env.development.local` в скриптах `test:e2e` / `test:integration`).
+Проверяют CRUD через реальный стек (Nest + TypeORM + Postgres + Redis, `supertest`). Файл сьюита: `test/crud.integration-spec.ts`; хелперы в `test/helpers/`; конфиг Jest: `test/jest-e2e.json`; переменные тестовой БД: `test/.env.integration` (подмешиваются **поверх** `.env` в скриптах `test:e2e` / `test:integration`).
 
 **Подготовка один раз:** нужны запущенные Postgres и Redis (как для dev). Создай отдельную БД под интеграционные тесты (имя по умолчанию совпадает с `POSTGRES_DB` в `test/.env.integration`, обычно `mydb_integration`):
 
@@ -126,7 +126,51 @@ npm run test:e2e             # integration + smoke (например GET /health
 cd repo
 npm run lint
 npm test
+npm run test:cov
 ```
+
+## Errors format (Day 9)
+
+Глобальный `HttpExceptionFilter` приводит ответы об ошибках к единому формату из `TS.md` §9:
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "error": "Bad Request",
+  "timestamp": "...",
+  "path": "/tasks"
+}
+```
+
+`message` может быть строкой или массивом строк (для ошибок валидации).
+
+## Coverage (Day 9)
+
+Цель: держать coverage **≥ 70%** по unit-тестам.
+
+Запуск:
+
+```bash
+cd repo
+npm run test:cov
+```
+
+Coverage считается по бизнес-логике; из покрытия исключены “обвязочные” файлы, которые обычно не тестируют unit-тестами:
+
+- `**/*.controller.ts`
+- `**/*.module.ts`
+- `**/*.entity.ts`
+- `**/*.constants.ts`
+- `**/dto/**`
+- `**/database/**` (в т.ч. миграции)
+- `**/main.ts`, `**/app.module.ts`
+
+Настройка находится в `package.json` → `jest.collectCoverageFrom`.
+
+Coverage gate:
+
+- локально/в CI используется `package.json` → `jest.coverageThreshold` (глобально ≥ 70%)
 
 ## Документация
 
@@ -144,3 +188,15 @@ npm test
 **Статус:** кеш `GET /tasks` — `TasksListCacheService` (`TS.md` §6). Отчёт BullMQ + WS — см. выше и `../memory/decision-log.md` (Day 8).
 
 **Правило:** multi-tenant isolation — в запросах к данным всегда ограничивать **`organizationId`** из JWT; для `Task` оно хранится в строке задачи и совпадает с организацией проекта.
+
+## CI
+
+Workflow: `.github/workflows/ci.yml`.
+
+На push/PR запускается:
+
+- `npm ci`
+- `npm run lint`
+- `npm run test:cov` (coverage gate ≥ 70%)
+- `npm run build`
+- `docker build` (проверка сборки образа)
