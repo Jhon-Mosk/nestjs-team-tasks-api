@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
   pull_request:
-    branches: [main, develop]
+    branches: [ main, develop ]
 
 jobs:
   unit:
@@ -49,18 +49,18 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U app -d mydb"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
+          --health-cmd "pg_isready -U app -d mydb" --health-interval 5s
+          --health-timeout 5s --health-retries 20
       redis:
         image: redis:7-alpine
+        env:
+          REDIS_PASSWORD: my_redis_password
+          REDIS_USER: my_user
+          REDIS_USER_PASSWORD: my_user_password
         ports:
           - 6379:6379
         options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s
           --health-retries 20
 
     steps:
