@@ -188,3 +188,15 @@ Coverage gate:
 **Статус:** кеш `GET /tasks` — `TasksListCacheService` (`TS.md` §6). Отчёт BullMQ + WS — см. выше и `../memory/decision-log.md` (Day 8).
 
 **Правило:** multi-tenant isolation — в запросах к данным всегда ограничивать **`organizationId`** из JWT; для `Task` оно хранится в строке задачи и совпадает с организацией проекта.
+
+## CI
+
+Workflow: `.github/workflows/ci.yml`.
+
+На push/PR запускается:
+
+- `npm ci`
+- `npm run lint`
+- `npm run test:cov` (coverage gate ≥ 70%)
+- `npm run build`
+- `docker build` (проверка сборки образа)
