@@ -126,7 +126,31 @@ npm run test:e2e             # integration + smoke (например GET /health
 cd repo
 npm run lint
 npm test
+npm run test:cov
 ```
+
+## Coverage (Day 9)
+
+Цель: держать coverage **≥ 70%** по unit-тестам.
+
+Запуск:
+
+```bash
+cd repo
+npm run test:cov
+```
+
+Coverage считается по бизнес-логике; из покрытия исключены “обвязочные” файлы, которые обычно не тестируют unit-тестами:
+
+- `**/*.controller.ts`
+- `**/*.module.ts`
+- `**/*.entity.ts`
+- `**/*.constants.ts`
+- `**/dto/**`
+- `**/database/**` (в т.ч. миграции)
+- `**/main.ts`, `**/app.module.ts`
+
+Настройка находится в `package.json` → `jest.collectCoverageFrom`.
 
 ## Документация
 
