@@ -11,6 +11,13 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Auth } from 'src/common/decorators/auth.decorator';
 import { AccessTokenPayload } from '../auth/types/jwt-payload';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -20,11 +27,15 @@ import { TaskResponseDto } from './dto/task-response.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksService } from './tasks.service';
 
+@ApiTags('tasks')
+@ApiBearerAuth()
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Auth()
+  @ApiOperation({ summary: 'Create task' })
+  @ApiOkResponse({ type: TaskResponseDto })
   @Post()
   createTask(
     @Body() dto: CreateTaskDto,
@@ -34,6 +45,8 @@ export class TasksController {
   }
 
   @Auth()
+  @ApiOperation({ summary: 'List tasks (pagination + filters)' })
+  @ApiOkResponse({ type: ListTasksResponseDto })
   @Get()
   listTasks(
     @Query() query: ListTasksQueryDto,
@@ -43,6 +56,9 @@ export class TasksController {
   }
 
   @Auth()
+  @ApiOperation({ summary: 'Get task by id' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: TaskResponseDto })
   @Get(':id')
   getTask(
     @Param('id') id: string,
@@ -52,6 +68,9 @@ export class TasksController {
   }
 
   @Auth()
+  @ApiOperation({ summary: 'Update task' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: TaskResponseDto })
   @Patch(':id')
   updateTask(
     @Param('id') id: string,
@@ -62,6 +81,8 @@ export class TasksController {
   }
 
   @Auth()
+  @ApiOperation({ summary: 'Soft-delete task' })
+  @ApiParam({ name: 'id', format: 'uuid' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteTask(

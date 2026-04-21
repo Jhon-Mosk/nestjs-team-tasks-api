@@ -8,6 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { Auth } from 'src/common/decorators/auth.decorator';
 import { Configuration } from 'src/config/confuguration';
@@ -16,6 +17,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { AccessTokenPayload } from './types/jwt-payload';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -88,6 +90,7 @@ export class AuthController {
   }
 
   @Auth()
+  @ApiBearerAuth()
   @Get('me')
   async me(@Req() req: Request & { user: AccessTokenPayload }) {
     const userId = req.user.sub;

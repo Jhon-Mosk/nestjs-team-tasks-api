@@ -75,6 +75,12 @@ npm run start:dev
 
 `start:dev` поднимает `postgres` + `redis` через Docker Compose (см. `package.json` скрипты `docker:up:dev` / `docker:down:dev`).
 
+## Swagger (OpenAPI)
+
+- Swagger UI: `GET /docs` (только если заданы `SWAGGER_USER` и `SWAGGER_PASSWORD`)
+- OpenAPI JSON: `GET /docs-json` (та же защита)
+- Авторизация: нажми **Authorize** и вставь access JWT в формате `Bearer <token>`.
+
 ## ENV
 
 Создай `.env` на основе `.env.example` (файл в `.gitignore`, не коммить).
@@ -176,6 +182,49 @@ Coverage gate:
 
 - **ТЗ (домен, требования):** `TS.md`
 
+## ER diagram (Mermaid)
+
+```mermaid
+erDiagram
+  ORGANIZATIONS ||--o{ USERS : has
+  ORGANIZATIONS ||--o{ PROJECTS : has
+  ORGANIZATIONS ||--o{ TASKS : has
+  PROJECTS ||--o{ TASKS : has
+  USERS ||--o{ TASKS : assigned_to
+
+  ORGANIZATIONS {
+    uuid id PK
+    string name
+    uuid ownerId
+    datetime deletedAt
+  }
+
+  USERS {
+    uuid id PK
+    uuid organizationId FK
+    string email
+    string role
+    datetime deletedAt
+  }
+
+  PROJECTS {
+    uuid id PK
+    uuid organizationId FK
+    string name
+    datetime deletedAt
+  }
+
+  TASKS {
+    uuid id PK
+    uuid organizationId FK
+    uuid projectId FK
+    uuid assigneeId FK
+    string status
+    datetime dueDate
+    datetime deletedAt
+  }
+```
+
 ## Roadmap
 
 **День 8 (очередь + WS):** закрыт — BullMQ, `POST /reports/tasks`, processor, WebSocket-доставка, unit/integration тесты — см. `../memory/decision-log.md`.
@@ -183,7 +232,7 @@ Coverage gate:
 
 **Клиент WebSocket (кратко):** подключение к тому же origin, что и HTTP; передать access JWT в `auth: { token: '<accessJwt>' }` или в заголовке `Authorization: Bearer …`; слушать события `tasks-report:done` и при необходимости `tasks-report:failed` (имена в `src/modules/reports/reports-ws.constants.ts`).
 
-**Следующий фокус:** CI и coverage ≥ 70% — см. `../Roadmap.md` (День 9).
+**Следующий фокус:** Day 10 (Swagger/README/NFR) — см. `../Roadmap.md`.
 
 **Статус:** кеш `GET /tasks` — `TasksListCacheService` (`TS.md` §6). Отчёт BullMQ + WS — см. выше и `../memory/decision-log.md` (Day 8).
 

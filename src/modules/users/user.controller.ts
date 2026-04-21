@@ -10,6 +10,7 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Auth } from 'src/common/decorators/auth.decorator';
 import { AccessTokenPayload } from '../auth/types/jwt-payload';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -19,6 +20,8 @@ import { ListUsersResponseDto } from './dto/list-users-response.dto';
 import { UserService } from './user.service';
 import { UserRole } from './users.entity';
 
+@ApiTags('users')
+@ApiBearerAuth()
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
