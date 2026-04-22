@@ -14,6 +14,9 @@ describe('configuration()', () => {
   it('maps parsed env into config object', () => {
     process.env['NODE_ENV'] = 'test';
     process.env['PORT'] = '3001';
+    process.env['SWAGGER_ENABLED'] = 'true';
+    process.env['SWAGGER_USER'] = 'admin';
+    process.env['SWAGGER_PASSWORD'] = 'admin';
     process.env['POSTGRES_HOST'] = 'db';
     process.env['POSTGRES_PORT'] = '5432';
     process.env['POSTGRES_USER'] = 'app';
@@ -34,6 +37,9 @@ describe('configuration()', () => {
 
     expect(cfg.nodeEnv).toBe('test');
     expect(cfg.port).toBe(3001);
+    expect(cfg.swagger.enabled).toBe(true);
+    expect(cfg.swagger.user).toBe('admin');
+    expect(cfg.swagger.password).toBe('admin');
     expect(cfg.database.host).toBe('db');
     expect(cfg.redis.host).toBe('redis');
     expect(cfg.jwt.accessSecret).toBe('a');

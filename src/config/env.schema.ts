@@ -1,8 +1,28 @@
 import { z } from 'zod';
 
+const boolFromEnv = z.preprocess((value) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value === 1;
+  if (typeof value !== 'string') return value;
+
+  const v = value.trim().toLowerCase();
+  if (v === 'true' || v === '1' || v === 'yes' || v === 'y') return true;
+  if (v === 'false' || v === '0' || v === 'no' || v === 'n') return false;
+
+  return value;
+}, z.boolean());
+
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']),
   PORT: z.coerce.number().default(3000),
+
+  /**
+   * Swagger UI (/docs) is enabled only if NODE_ENV !== 'production'
+   * and SWAGGER_ENABLED=true and both SWAGGER_USER/SWAGGER_PASSWORD are set.
+   */
+  SWAGGER_ENABLED: boolFromEnv.default(false),
+  SWAGGER_USER: z.string().optional(),
+  SWAGGER_PASSWORD: z.string().optional(),
 
   POSTGRES_HOST: z.string(),
   POSTGRES_PORT: z.coerce.number(),

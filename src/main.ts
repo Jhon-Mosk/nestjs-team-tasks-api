@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
@@ -6,6 +6,7 @@ import { NativeLogger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { closeWithTimeout } from './common/utils/close-with-timeout';
+import { setupSwagger } from './swagger/setup-swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -24,6 +25,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
       transformOptions: {
         enableImplicitConversion: true,
       },
@@ -33,6 +35,10 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.useGlobalFilters(new HttpExceptionFilter(logger));
+
+  if (nodeEnv !== 'production') {
+    setupSwagger(app, logger);
+  }
 
   app.enableShutdownHooks();
 

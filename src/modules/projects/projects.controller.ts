@@ -11,7 +11,15 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Auth } from 'src/common/decorators/auth.decorator';
+import { ApiErrorResponses } from 'src/common/swagger/api-error-responses';
 import { AccessTokenPayload } from '../auth/types/jwt-payload';
 import { UserRole } from '../users/users.entity';
 import { CreateProjectResponseDto } from './dto/create-project-response.dto';
@@ -21,11 +29,21 @@ import { ListProjectsResponseDto } from './dto/list-projects-response.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectsService } from './projects.service';
 
+@ApiTags('projects')
+@ApiBearerAuth()
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Auth(UserRole.OWNER, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Create project' })
+  @ApiOkResponse({ type: CreateProjectResponseDto })
+  @ApiErrorResponses({
+    unauthorized: true,
+    forbidden: true,
+    conflict: true,
+    unprocessable: true,
+  })
   @Post()
   createProject(
     @Body() dto: CreateProjectDto,
@@ -36,6 +54,13 @@ export class ProjectsController {
   }
 
   @Auth(UserRole.OWNER, UserRole.MANAGER)
+  @ApiOperation({ summary: 'List projects (pagination)' })
+  @ApiOkResponse({ type: ListProjectsResponseDto })
+  @ApiErrorResponses({
+    unauthorized: true,
+    forbidden: true,
+    unprocessable: true,
+  })
   @Get()
   listProjects(
     @Query() query: ListProjectsQueryDto,
@@ -46,6 +71,10 @@ export class ProjectsController {
   }
 
   @Auth(UserRole.OWNER, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Get project by id' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: CreateProjectResponseDto })
+  @ApiErrorResponses({ unauthorized: true, forbidden: true, notFound: true })
   @Get(':id')
   getProject(
     @Param('id') id: string,
@@ -56,6 +85,16 @@ export class ProjectsController {
   }
 
   @Auth(UserRole.OWNER, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Update project' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: CreateProjectResponseDto })
+  @ApiErrorResponses({
+    unauthorized: true,
+    forbidden: true,
+    notFound: true,
+    conflict: true,
+    unprocessable: true,
+  })
   @Patch(':id')
   updateProject(
     @Param('id') id: string,
@@ -67,6 +106,9 @@ export class ProjectsController {
   }
 
   @Auth(UserRole.OWNER, UserRole.MANAGER)
+  @ApiOperation({ summary: 'Soft-delete project' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiErrorResponses({ unauthorized: true, forbidden: true, notFound: true })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteProject(
