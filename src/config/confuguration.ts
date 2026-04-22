@@ -22,9 +22,16 @@ export interface JwtConfig {
   refreshTtlSec: number;
 }
 
+export interface SwaggerConfig {
+  enabled: boolean;
+  user?: string;
+  password?: string;
+}
+
 export interface Configuration {
   nodeEnv: string;
   port: number;
+  swagger: SwaggerConfig;
   database: DatabaseConfig;
   shutdownTimeoutMs: number;
   redis: RedisConfig;
@@ -39,6 +46,11 @@ export default () => {
   return {
     nodeEnv: parsed.NODE_ENV,
     port: parsed.PORT,
+    swagger: {
+      enabled: parsed.SWAGGER_ENABLED,
+      user: parsed.SWAGGER_USER,
+      password: parsed.SWAGGER_PASSWORD,
+    },
     database: {
       host: parsed.POSTGRES_HOST,
       port: parsed.POSTGRES_PORT,

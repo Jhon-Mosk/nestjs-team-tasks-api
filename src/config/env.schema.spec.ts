@@ -5,6 +5,7 @@ describe('envSchema', () => {
     const parsed = envSchema.parse({
       NODE_ENV: 'test',
       // PORT omitted -> default 3000
+      // SWAGGER_* omitted -> optional
       POSTGRES_HOST: 'localhost',
       POSTGRES_PORT: '5432',
       POSTGRES_USER: 'app',
@@ -22,6 +23,9 @@ describe('envSchema', () => {
     });
 
     expect(parsed.PORT).toBe(3000);
+    expect(parsed.SWAGGER_ENABLED).toBe(false);
+    expect(parsed.SWAGGER_USER).toBeUndefined();
+    expect(parsed.SWAGGER_PASSWORD).toBeUndefined();
     expect(parsed.POSTGRES_PORT).toBe(5432);
     expect(parsed.SHUTDOWN_TIMEOUT_MS).toBe(30_000);
     expect(parsed.REDIS_PORT).toBe(6379);
