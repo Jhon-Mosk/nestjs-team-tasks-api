@@ -5,7 +5,56 @@
 
 Production‑ready backend API для управления командами и задачами.
 
-**Stack**: NestJS · TypeORM · PostgreSQL · Redis · BullMQ · Socket.io · Swagger · Jest · GitHub Actions
+## Зачем существует этот проект
+
+Этот проект — демонстрация того, как проектировать production‑ready backend не только как CRUD,
+а как систему с реальными требованиями: **security**, **изоляция арендаторов (multi‑tenant)**,
+**RBAC**, **асинхронные задачи**, **реалтайм**, **кеширование**, **тесты** и **CI**.
+
+## Что демонстрирует этот проект
+
+- Проектирование API с учётом NFR (ошибки/коды, безопасность, наблюдаемость, CI gates)
+- Multi‑tenant access model и строгие tenant‑ограничения в запросах
+- RBAC и policy‑подход к правам доступа
+- Асинхронные workflow через queue + event-driven delivery через WebSocket
+- Caching с инвалидацией “на запись” и контролируемым TTL
+
+## Технологический стек
+
+- **Backend**: NestJS, TypeScript, TypeORM
+- **Database**: PostgreSQL
+- **Caching & queues**: Redis, BullMQ
+- **Realtime**: Socket.io
+- **Docs**: Swagger (OpenAPI)
+- **Testing**: Jest, Supertest
+- **Infra**: Docker, GitHub Actions
+
+## Обзор архитектуры
+
+Модульный монолит с разделением ответственности:
+
+- **API layer**: controllers + DTO validation (`ValidationPipe`)
+- **Domain layer**: business logic + policy (RBAC rules)
+- **Infrastructure**: PostgreSQL/TypeORM, Redis, BullMQ workers
+- **Realtime**: Socket.io gateway + rooms `user:{sub}`
+
+## Инженерные решения и компромиссы (trade-offs)
+
+- **Refresh tokens in httpOnly cookies**
+  - + снижает риск XSS
+  - − требует server-side invalidation (Redis) и вводит зависимость от Redis для refresh/logout
+- **Multi‑tenant via `organizationId` in access JWT + strict tenant filters**
+  - + быстрые и простые запросы
+  - − требует дисциплины: tenant‑ограничение должно быть в каждом read/update/delete
+- **Tasks store `organizationId` (денормализация)**
+  - + ускоряет tenant‑lists без обязательных JOIN
+  - − нужно сохранять консистентность при write‑операциях
+- **Cache with manual invalidation**
+  - + ускоряет `GET /tasks`
+  - − повышает сложность write‑операций (нужна инвалидация/версионирование)
+- **Async reports via queue**
+  - + не блокирует HTTP запросы
+  - − вводит eventual consistency и необходимость delivery‑канала (WS)
 
 ## Возможности
 
