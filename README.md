@@ -1,5 +1,8 @@
 # Team Task Management API
 
+[![CI](https://github.com/Jhon-Mosk/nestjs-team-tasks-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Jhon-Mosk/nestjs-team-tasks-api/actions/workflows/ci.yml)
+![Coverage](https://img.shields.io/badge/coverage-70%25%2B-brightgreen)
+
 Production‑ready backend API для управления командами и задачами.
 
 **Stack**: NestJS · TypeORM · PostgreSQL · Redis · BullMQ · Socket.io · Swagger · Jest · GitHub Actions
