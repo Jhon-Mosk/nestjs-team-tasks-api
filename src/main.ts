@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
@@ -25,6 +25,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
       transformOptions: {
         enableImplicitConversion: true,
       },

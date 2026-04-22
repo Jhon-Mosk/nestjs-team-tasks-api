@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsDate,
@@ -7,7 +8,6 @@ import {
   IsUUID,
   MinLength,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TaskPriority, TaskStatus } from '../tasks.entity';
 
 export class CreateTaskDto {
@@ -21,12 +21,12 @@ export class CreateTaskDto {
   @MinLength(1)
   description!: string;
 
-  @ApiPropertyOptional({ enum: TaskStatus, example: TaskStatus.todo })
+  @ApiPropertyOptional({ enum: TaskStatus, example: TaskStatus.TODO })
   @IsOptional()
   @IsEnum(TaskStatus)
   status?: TaskStatus;
 
-  @ApiPropertyOptional({ enum: TaskPriority, example: TaskPriority.medium })
+  @ApiPropertyOptional({ enum: TaskPriority, example: TaskPriority.MEDIUM })
   @IsOptional()
   @IsEnum(TaskPriority)
   priority?: TaskPriority;
