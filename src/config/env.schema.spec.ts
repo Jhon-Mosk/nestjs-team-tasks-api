@@ -34,6 +34,51 @@ describe('envSchema', () => {
     expect(parsed.TASKS_LIST_CACHE_TTL_SEC).toBe(300);
   });
 
+  it.each([
+    ['true', true],
+    ['1', true],
+    ['yes', true],
+    ['false', false],
+    ['0', false],
+    ['no', false],
+  ])('parses SWAGGER_ENABLED=%s', (raw, expected) => {
+    const parsed = envSchema.parse({
+      NODE_ENV: 'test',
+      SWAGGER_ENABLED: raw,
+      POSTGRES_HOST: 'localhost',
+      POSTGRES_PORT: '5432',
+      POSTGRES_USER: 'app',
+      POSTGRES_PASSWORD: 'secret',
+      POSTGRES_DB: 'mydb',
+      REDIS_USER: 'u',
+      REDIS_USER_PASSWORD: 'p',
+      REDIS_HOST: 'localhost',
+      JWT_ACCESS_SECRET: 'a',
+      JWT_REFRESH_SECRET: 'r',
+    });
+
+    expect(parsed.SWAGGER_ENABLED).toBe(expected);
+  });
+
+  it('throws on invalid SWAGGER_ENABLED', () => {
+    expect(() =>
+      envSchema.parse({
+        NODE_ENV: 'test',
+        SWAGGER_ENABLED: 'maybe',
+        POSTGRES_HOST: 'localhost',
+        POSTGRES_PORT: '5432',
+        POSTGRES_USER: 'app',
+        POSTGRES_PASSWORD: 'secret',
+        POSTGRES_DB: 'mydb',
+        REDIS_USER: 'u',
+        REDIS_USER_PASSWORD: 'p',
+        REDIS_HOST: 'localhost',
+        JWT_ACCESS_SECRET: 'a',
+        JWT_REFRESH_SECRET: 'r',
+      }),
+    ).toThrow();
+  });
+
   it('throws on invalid NODE_ENV', () => {
     expect(() =>
       envSchema.parse({
