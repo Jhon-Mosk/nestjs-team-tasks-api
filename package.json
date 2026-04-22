@@ -1,10 +1,34 @@
 {
-  "name": "repo",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "name": "nestjs-team-tasks-api",
+  "version": "1.0.0",
+  "description": "Production-ready NestJS API: auth, RBAC, multi-tenant, Redis cache, BullMQ reports, WebSocket, Swagger, CI.",
+  "author": {
+    "name": "Evgeniy Politiko",
+    "email": "Jhon-mosk@yandex.ru",
+    "url": "https://jhon-mosk.ru/"
+  },
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jhon-Mosk/nestjs-team-tasks-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Jhon-Mosk/nestjs-team-tasks-api/issues"
+  },
+  "homepage": "https://github.com/Jhon-Mosk/nestjs-team-tasks-api#readme",
+  "keywords": [
+    "nestjs",
+    "typeorm",
+    "postgres",
+    "redis",
+    "bullmq",
+    "socket.io",
+    "swagger",
+    "jest",
+    "ci",
+    "docker"
+  ],
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
