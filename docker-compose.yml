@@ -4,7 +4,7 @@ services:
     build:
       context: .
       args:
-        NODE_VERSION: 22.20.0-alpine
+        NODE_VERSION: 22.23.4-alpine
     env_file:
       - .env
     ports:
